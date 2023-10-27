@@ -1,0 +1,14 @@
+version: "3.8"
+
+services:
+  workdayapp:
+    image: redis/redis-stack-server:7.2.0-v4
+    ports:
+      - "6300:6379"
+      - "13333:8001"
+    volumes:
+      - ./redis-data:/data
+      - ./redis.conf:/redis-stack.conf
+      - ./users.acl:/users.acl
+volumes:
+  workdayapp-data:

@@ -1,0 +1,3 @@
+user admin on >adminpass +@all ~*
+user read_only on >readonlypass +@read ~*
+user execute_user on >executeuserpass +@all -@dangerous ~*
