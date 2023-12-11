@@ -27,5 +27,7 @@ eb deploy
 # Elastic Beanstalk環境のEC2インスタンスにSSHで接続する
 sudo less /var/log/eb-engine.log
 
-
 ```
+
+HTMLテンプレートURl
+https://get.foundation/templates-previews-sites-f6-xy-grid/news-magazine.html
