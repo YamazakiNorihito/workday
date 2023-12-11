@@ -1,0 +1,89 @@
+<style>
+    body {
+        font-family: 'Arial', sans-serif;
+        background-color: #f5f5f5;
+        margin: 0;
+        padding: 0;
+        color: #555;
+    }
+
+    .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .header {
+        text-align: center;
+        padding: 20px 0;
+    }
+
+    .news-list {
+        list-style: none;
+        padding: 0;
+    }
+
+    .news-item {
+        background-color: #ffffff;
+        padding: 15px;
+        margin-bottom: 10px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        border-radius: 4px;
+    }
+
+    .news-item h3 {
+        margin: 0 0 10px 0;
+        color: #333;
+    }
+
+    .news-item p {
+        margin: 0;
+        font-size: 14px;
+    }
+
+    .news-item a {
+        color: #007BFF;
+        text-decoration: none;
+    }
+
+    .news-item a:hover {
+        text-decoration: underline;
+    }
+</style>
+<div class="container">
+    <div class="header">
+        <h1>
+            <%= feed?.title %>
+        </h1>
+        <p>
+            <%= feed?.description %>
+        </p>
+        <p>Last updated: <%= feed?.lastBuildDate ? new Date(feed.lastBuildDate).toLocaleString() : 'Unknown' %>
+        </p>
+    </div>
+    <% if (feed?.items && feed?.items.length> 0) { %>
+        <ul class="news-list">
+            <% feed.items.forEach(function(item) { %>
+                <li class="news-item">
+                    <h3>
+                        <a href="<%= item.link %>" target="_blank">
+                            <%= item.title %>
+                        </a>
+                    </h3>
+                    <p>Published on <%= item.pubDate ? new Date(item.pubDate).toLocaleString() : 'Unknown' %>
+                    </p>
+                    <p>
+                        <% const view_length=74 * 3; %>
+                            <%= item.contentSnippet.slice(0, view_length) %>
+                                <%= item.contentSnippet.length> view_length ? '...' : '' %>
+                    </p>
+                    <% if (item.categories && item.categories.length> 0) { %>
+                        <p>Categories: <%= item.categories.join(', ') %></p>
+                    <% } %>
+                </li>
+            <% }); %>
+        </ul>
+    <% } else { %>
+        <p>No updates available.</p>
+    <% } %>
+</div>

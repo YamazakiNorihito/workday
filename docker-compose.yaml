@@ -1,14 +1,44 @@
 version: "3.8"
-
 services:
-  workdayapp:
-    image: redis/redis-stack-server:7.2.0-v4
+  https-portal:
+    image: steveltn/https-portal:1
     ports:
-      - "6300:6379"
-      - "13333:8001"
+      - '80:80'
+      - '443:443'
+    restart: always
+    environment:
+      DOMAINS: 'workday.ap-northeast-1.elasticbeanstalk.com -> http://app:3000'
+      STAGE: 'production'
     volumes:
-      - ./redis-data:/data
-      - ./redis.conf:/redis-stack.conf
-      - ./users.acl:/users.acl
+      - https-portal-data:/var/lib/https-portal
+    depends_on:
+      - app
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile-node
+    environment:
+      - DOMAIN
+      - NODE_ENV=production
+      - FREE_CLIENT_ID
+      - FREE_CLIENT_SECRET
+      - REDIS_URL
+      - SLACK_TOKEN
+      - COGNITO_DOMAIN
+      - COGNITO_USER_POOL_URL
+      - COGNITO_CLIENT_ID
+      - COGNITO_CLIENT_SECRET
+    depends_on:
+      - redis
+
+  redis:
+    build:
+      context: .
+      dockerfile: Dockerfile-redis
+    volumes:
+      - redis-data:/data
+
 volumes:
-  workdayapp-data:
+  redis-data:
+  https-portal-data:

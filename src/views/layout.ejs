@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <%= title %>
+    </title>
+    <style>
+        /* スタイルを追加 */
+        body {
+            display: flex;
+            font-family: Arial, sans-serif;
+            margin: 0;
+        }
+
+        #menu {
+            width: 250px;
+            background-color: #333;
+            color: #fff;
+            padding: 20px;
+            box-shadow: 5px 0px 10px rgba(0, 0, 0, 0.2);
+            min-height: 100vh;
+        }
+
+        #menu h2 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        #menu ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        #menu li {
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        #menu a {
+            text-decoration: none;
+            color: #fff;
+            font-size: 18px;
+            /* リンク全体がクリックできるようにする */
+            display: block;
+            padding: 5px;
+            /* パディングを追加してリンクをクリックしやすくする */
+        }
+
+        #main {
+            flex: 1;
+            padding: 20px;
+        }
+
+        .accordion {
+            cursor: pointer;
+            transition: 0.4s;
+        }
+
+        .accordion:hover {
+            background-color: #ddd;
+        }
+
+        .panel {
+            display: none;
+            overflow: hidden;
+            /* background-color: #f1f1f1; */
+            padding-left: 20px;
+        }
+
+        .panel a {
+            display: block;
+            color: black;
+            padding: 10px 15px;
+            text-decoration: none;
+        }
+
+        .panel a:hover {
+            background-color: #ddd;
+        }
+
+        /* メインメニューアイテム */
+        .menu-item {
+            position: relative;
+            /* サブメニューの配置のため */
+        }
+
+        /* サブメニューのスタイルを修正 */
+        .submenu {
+            display: none;
+            position: absolute;
+            left: 100%;
+            /* メインメニューの右側に配置 */
+            top: 0;
+            background-color: #333;
+            /* 背景色を明るい色に変更 */
+            color: #333;
+            /* テキストの色を暗い色に変更 */
+            box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+            min-width: 200px;
+            /* サブメニューの最小幅を設定 */
+            border: 1px solid #ddd;
+            /* 境界線を追加 */
+            z-index: 100;
+            /* z-indexを増やす */
+        }
+
+        /* サブメニュー内のリンクのスタイルを修正 */
+        .submenu a {
+            color: #333;
+            /* テキストの色を暗い色に変更 */
+            padding: 10px 15px;
+            /* パディングを適用 */
+            text-decoration: none;
+            /* テキストの装飾を無効に */
+            display: block;
+            /* リンクをブロック要素に */
+        }
+
+        /* サブメニュー内のリンクにホバーした際のスタイル */
+        .submenu a:hover {
+            background-color: #ddd;
+            /* 背景色を変更 */
+            color: #000;
+            /* ホバー時のテキスト色を変更 */
+        }
+
+        /* メインメニューアイテムにホバーした時にサブメニューを表示 */
+        .menu-item:hover .submenu {
+            display: block;
+        }
+
+        @media screen and (max-width: 768px) {
+
+            /* スマートフォンやタブレット向けのスタイル */
+            #menu {
+                width: 100%;
+                /* メニューの幅を全幅に */
+                min-height: auto;
+                /* 高さの最小値を変更 */
+                position: relative;
+                /* メニューの位置調整 */
+            }
+
+            .menu-item .submenu {
+                position: static;
+                /* サブメニューの位置調整 */
+            }
+
+            #main {
+                padding: 10px;
+                /* メインコンテンツのパディング調整 */
+            }
+
+            /* 他のレスポンシブ対応のスタイル */
+        }
+    </style>
+</head>
+
+<body>
+    <!-- メニュー部分 -->
+    <div id="menu">
+        <h2>メニュー</h2>
+        <ul>
+            <li><a href="/">ホーム</a></li>
+            <li><a href="/freee">freee勤怠管理</a></li>
+            <li class="menu-item">
+                <a href="javascript:void(0)">IT News</a>
+                <ul class="submenu">
+                    <li><a href="/news/hacker-news/top">Hacker News Top</a></li>
+                    <li><a href="/news/hacker-news/new">Hacker News New</a></li>
+                    <li><a href="/news/hacker-news/best">Hacker News Best</a></li>
+                    <% techNewsCategories.forEach(techNewsCategory=> { %>
+                        <li><a href="/news/<%= techNewsCategory.category %>">
+                                <%= techNewsCategory.menuName %>
+                            </a></li>
+                        <% }); %>
+                </ul>
+            </li>
+            <li><a href="/">お問い合わせ</a></li>
+        </ul>
+    </div>
+
+    <!-- メインコンテンツ部分 -->
+    <div id="main">
+        <%- body %>
+    </div>
+</body>
+
+</html>

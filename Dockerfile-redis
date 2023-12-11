@@ -1,0 +1,12 @@
+# ベースイメージを指定
+FROM redis/redis-stack-server:7.2.0-v4
+
+# ホストシステムからコンテナに設定ファイルをコピー
+COPY redis.conf /redis-stack.conf
+COPY users.acl /users.acl
+
+# Redisデータ用のボリュームを指定（オプション）
+VOLUME /data
+
+# Redisサーバーを実行
+CMD ["redis-stack-server", "redis-stack.conf"]
