@@ -1,5 +1,5 @@
-# Node.jsの公式イメージをベースとする
-FROM node:18
+# ビルドステージ
+FROM node:18 as builder
 
 # アプリケーションディレクトリを作成
 WORKDIR /app
@@ -10,12 +10,22 @@ COPY package*.json ./
 # 依存関係のインストール
 RUN npm install
 
-# 必要なソースコードのみをコピー
+# ソースコードのコピー
 COPY src/ src/
 COPY tsconfig.json .
 
 # TypeScriptのコンパイル
 RUN npm run build
+
+# 実行ステージ
+FROM node:18-slim
+
+# アプリケーションディレクトリを作成
+WORKDIR /app
+
+# ビルドステージからコンパイルされたファイルと node_modules をコピー
+COPY --from=builder /app/dist /app/dist
+COPY --from=builder /app/node_modules /app/node_modules
 
 EXPOSE 3000
 
