@@ -15,9 +15,7 @@ services:
       - app
 
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile-node
+    image : public.ecr.aws/l0m5q1g1/nybeyond/workday:0.0.1
     environment:
       - DOMAIN
       - NODE_ENV=production
@@ -33,9 +31,7 @@ services:
       - redis
 
   redis:
-    build:
-      context: .
-      dockerfile: Dockerfile-redis
+    image: public.ecr.aws/l0m5q1g1/nybeyond/workday-redis:0.0.1
     volumes:
       - redis-data:/data
 
