@@ -81,3 +81,24 @@ $ uname -m
 $ lscpu
 
 ```
+
+
+### 同じリポジトリを AWS CodeCommit と GitHub にプッシュする
+
+```bash
+# リモートリポジトリの追加
+git remote add codecommit [CodeCommit リポジトリのURL]
+git remote add github [GitHub リポジトリのURL]
+
+# プッシュの実行
+# CodeCommit にプッシュ
+git push codecommit [ブランチ名]
+
+# GitHub にプッシュ
+git push github [ブランチ名]
+
+
+# リモートの確認
+git remote -v
+
+```
