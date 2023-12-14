@@ -15,7 +15,7 @@ services:
       - app
 
   app:
-    image : public.ecr.aws/l0m5q1g1/nybeyond/workday:0.0.1
+    image : public.ecr.aws/l0m5q1g1/nybeyond/workday:0.0.2
     environment:
       - DOMAIN
       - NODE_ENV=production
@@ -31,7 +31,7 @@ services:
       - redis
 
   redis:
-    image: public.ecr.aws/l0m5q1g1/nybeyond/workday-redis:0.0.1
+    image: public.ecr.aws/l0m5q1g1/nybeyond/workday-redis:0.0.2
     volumes:
       - redis-data:/data
 

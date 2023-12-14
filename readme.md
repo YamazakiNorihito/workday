@@ -42,7 +42,7 @@ pwd
 > /workday
 
 # docker build -t nybeyond/workday:0.0.1 -f Dockerfile-node .
-docker build -t nybeyond/workday:[version] -f Dockerfile-node .
+docker buildx build -t nybeyond/workday:[version] -f Dockerfile-node .
 > 略
 
 docker images
