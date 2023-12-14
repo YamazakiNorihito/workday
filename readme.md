@@ -35,33 +35,49 @@ https://get.foundation/templates-previews-sites-f6-xy-grid/news-magazine.html
 ECRへPushまでの道のり
 ```bash
 # 未ログインの場合
-aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/l0m5q1g1
+$ aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/l0m5q1g1
 
 # workday appの場合
-pwd
+$ pwd
 > /workday
 
-# docker build -t nybeyond/workday:0.0.1 -f Dockerfile-node .
-docker buildx build -t nybeyond/workday:[version] -f Dockerfile-node .
+# docker buildx build --platform linux/amd64 -t nybeyond/workday:0.0.3 -f Dockerfile-node .
+# docker buildx build --platform linux/amd64 -t nybeyond/workday-redis:0.0.3 -f Dockerfile-redis .
+$ docker buildx build -t nybeyond/workday:[version] -f Dockerfile-node .
 > 略
 
-docker images
+$ docker images
 > REPOSITORY                  TAG        IMAGE ID       CREATED        SIZE
 > nybeyond/workday            0.0.1      1214e5db6574   19 hours ago   317MB
 
 
-# docker tag 1214e5db6574 public.ecr.aws/l0m5q1g1/nybeyond/workday:0.0.1
-docker tag [workday_docker_IMAGE_ID] public.ecr.aws/l0m5q1g1/nybeyond/workday:[version]
+# docker tag d7740d7aa34f public.ecr.aws/l0m5q1g1/nybeyond/workday:0.0.3
+# docker tag dca1dcdf6067 public.ecr.aws/l0m5q1g1/nybeyond/workday-redis:0.0.3
+$ docker tag [workday_docker_IMAGE_ID] public.ecr.aws/l0m5q1g1/nybeyond/workday:[version]
 > (empty)
 
-docker images
+$ docker images
 > REPOSITORY                                 TAG        IMAGE ID       CREATED        SIZE
 > workday-app                                latest     4a665bec1ae3   19 hours ago   317MB
 > nybeyond/workday                           0.0.1      1214e5db6574   19 hours ago   317MB
 
-# docker push public.ecr.aws/l0m5q1g1/nybeyond/workday:0.0.1
-docker push public.ecr.aws/l0m5q1g1/nybeyond/workday:[version]
+# docker push public.ecr.aws/l0m5q1g1/nybeyond/workday:0.0.3
+# docker push public.ecr.aws/l0m5q1g1/nybeyond/workday-redis:0.0.3
+$ docker push public.ecr.aws/l0m5q1g1/nybeyond/workday:[version]
 
 ```
 [version] : 適宜入れて下さい。基本は(MAJOR.MINOR.PATCH) で管理する（[参考サイト](https://learn.microsoft.com/ja-jp/dotnet/core/versions/#semantic-versioning)
 [workday_docker_IMAGE_ID]: docker Build完了したときいのImage Id
+
+```bash
+# docker buildxが複数のアーキテクチャに対応していることを確認
+$ docker buildx inspect --bootstrap
+
+# EC2インスタンスのCPUアーキテクチャ（プラットフォーム）を確認
+# システムのアーキテクチャを示します。例えば、x86_64はAMD64アーキテクチャを、aarch64はARMアーキテクチャを意味
+$ uname -m
+
+# CPUに関する詳細な情報を提供します。Architecture行を見て、アーキテクチャを確認
+$ lscpu
+
+```
