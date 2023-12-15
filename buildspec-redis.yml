@@ -9,10 +9,14 @@ phases:
       - echo Building the Docker image...
       - docker build -t $IMAGE_REPO_NAME:$IMAGE_TAG  -f Dockerfile-redis .
       - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG public.ecr.aws/l0m5q1g1/$IMAGE_REPO_NAME:$IMAGE_TAG
+      - echo Tagging the Docker image as latest...
+      - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG public.ecr.aws/l0m5q1g1/$IMAGE_REPO_NAME:latest
   post_build:
     commands:
       - echo Pushing the Docker image...
       - docker push public.ecr.aws/l0m5q1g1/$IMAGE_REPO_NAME:$IMAGE_TAG
+      - echo Tagging the Docker image as latest...
+      - docker push public.ecr.aws/l0m5q1g1/$IMAGE_REPO_NAME:latest
 
 env:
   variables:
