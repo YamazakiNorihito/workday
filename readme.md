@@ -102,3 +102,20 @@ git push github [ブランチ名]
 git remote -v
 
 ```
+
+
+本来は Docker Hub の イメージを使用するのが一般的です。
+しかし、Docker Hub の匿名ユーザーに対するイメージダウンロード制限（レートリミット）により問題が発生する可能性があるため、
+同等のイメージを Amazon ECR に配置しています。これにより、レートリミットを回避し、安定したビルドプロセスを保証します。
+参考: https://matsuand.github.io/docs.docker.jp.onthefly/docker-hub/download-rate-limit/
+
+```bash
+# EC2向けにplatformを指定してpullする
+
+docker pull node:18 --platform=linux/amd64
+
+docker pull node:18 --platform=linux/amd64
+
+docker pull redis/redis-stack-server:7.2.0-v4  --platform=linux/amd64
+
+```
