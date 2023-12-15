@@ -1,5 +1,10 @@
 # ビルドステージ
-FROM node:18 as builder
+# 本来は Docker Hub の 'node:18' イメージを使用するのが一般的です。
+# しかし、Docker Hub の匿名ユーザーに対するイメージダウンロード制限（レートリミット）により問題が発生する可能性があるため、
+# 同等のイメージを Amazon ECR に配置しています。これにより、レートリミットを回避し、安定したビルドプロセスを保証します。
+# 参考: https://matsuand.github.io/docs.docker.jp.onthefly/docker-hub/download-rate-limit/
+# FROM node:18 as builder
+FROM public.ecr.aws/l0m5q1g1/nybeyond/node-18:latest as builder
 
 # アプリケーションディレクトリを作成
 WORKDIR /app
@@ -18,7 +23,8 @@ COPY tsconfig.json .
 RUN npm run build
 
 # 実行ステージ
-FROM node:18-slim
+#FROM node:18-slim
+FROM public.ecr.aws/l0m5q1g1/nybeyond/node-18:slim
 
 # アプリケーションディレクトリを作成
 WORKDIR /app
