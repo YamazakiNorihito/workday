@@ -119,3 +119,18 @@ docker pull node:18 --platform=linux/amd64
 docker pull redis/redis-stack-server:7.2.0-v4  --platform=linux/amd64
 
 ```
+
+TypeScriptの入門にはいいかも
+  - https://typescriptbook.jp/
+
+
+### jest
+https://jestjs.io/ja/docs/getting-started
+
+```bash
+
+npm install -D 'jest@^28.0.0' 'ts-jest@^28.0.0' '@types/jest@^28.0.0'
+
+npx ts-jest config:init
+
+```
