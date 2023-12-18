@@ -123,9 +123,20 @@ docker pull redis/redis-stack-server:7.2.0-v4  --platform=linux/amd64
 TypeScriptの入門にはいいかも
   - https://typescriptbook.jp/
 
+### code pipeline
+
+```bash
+# パイプラインのメタデータ、構造、ステージ、およびアクションを返します。パイプラインの構造全体を JSON 形式で返すために使用でき、これを変更して UpdatePipeline でパイプライン構造を更新するために使用できます。
+# https://docs.aws.amazon.com/cli/latest/reference/codepipeline/get-pipeline.html
+aws codepipeline get-pipeline --name workday-pipeline
+```
+
 
 ### jest
 https://jestjs.io/ja/docs/getting-started
+https://blog.logrocket.com/organizing-express-js-project-structure-better-productivity/
+https://blog.logrocket.com/node-js-project-architecture-best-practices/#best-practices-node-js-project-structure
+
 
 ```bash
 
