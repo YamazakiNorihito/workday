@@ -1,7 +1,13 @@
 import { SchemaFieldTypes, RedisClientType } from 'redis';
 import { inject, singleton } from "tsyringe";
+
+export interface IRSSFeedRepository {
+    save(feedId: string, feed: RSSFeed): Promise<void>;
+    get(feedId: string): Promise<RSSFeed | null>;
+}
+
 @singleton()
-export class RSSFeedRepository {
+export class RSSFeedRepository implements IRSSFeedRepository {
     constructor(
         @inject("RedisClient") private readonly redisClient: RedisClientType
     ) {
