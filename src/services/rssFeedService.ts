@@ -3,6 +3,11 @@ import Parser from 'rss-parser';
 import { createHash } from "crypto";
 import { RSSFeed, RSSFeedItem, RSSFeedRepository } from "../repositories/rssFeedRepository";
 
+export interface IRSSFeedService {
+    getRSSFeed(feedUrl: string): Promise<RSSFeed | null>;
+    getAndSaveRSSFeed(feedUrl: string): Promise<void>;
+}
+
 @singleton()
 export class RSSFeedService {
 
