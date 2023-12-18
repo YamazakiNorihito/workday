@@ -4,7 +4,7 @@ import { Request, Response } from 'express';
 import path from 'path';
 import { inject, singleton } from 'tsyringe';
 import { Employee, FreeeService } from '../services/freeeHrService';
-import { WeekdayService } from '../services/weekdayService';
+import { IWeekdayService } from '../services/weekdayService';
 import { BreakRecord, WorkRecord } from '../types/workRecord';
 import { TimeOnly } from '../types/timeOnly';
 import { DateOnly } from '../types/dateOnly';
@@ -21,7 +21,7 @@ export class FreeeController {
 
     constructor(
         @inject(FreeeService) private readonly freeeService: FreeeService
-        , @inject(WeekdayService) private readonly weekdayService: WeekdayService
+        , @inject("IWeekdayService") private readonly weekdayService: IWeekdayService
         , private _appDomainURL: string) {
         this._callback_url = `${this._appDomainURL}/freee/authorize/callback`;
     }
