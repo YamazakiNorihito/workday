@@ -1,7 +1,7 @@
 import { inject, singleton } from "tsyringe";
 import Parser from 'rss-parser';
 import { createHash } from "crypto";
-import { RSSFeed, RSSFeedItem, RSSFeedRepository } from "../repositories/rssFeedRepository";
+import { IRSSFeedRepository, RSSFeed, RSSFeedItem, RSSFeedRepository } from "../repositories/rssFeedRepository";
 
 export interface IRSSFeedService {
     getRSSFeed(feedUrl: string): Promise<RSSFeed | null>;
@@ -11,7 +11,7 @@ export interface IRSSFeedService {
 @singleton()
 export class RSSFeedService {
 
-    constructor(@inject(RSSFeedRepository) private readonly _rssFeedRepository: RSSFeedRepository) { }
+    constructor(@inject(RSSFeedRepository) private readonly _rssFeedRepository: IRSSFeedRepository) { }
 
     public async getRSSFeed(feedUrl: string): Promise<RSSFeed | null> {
 
