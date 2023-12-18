@@ -4,7 +4,7 @@ import { RedisClientType, createClient } from 'redis';
 import { FreeeController } from './controllers/freee';
 import { SlackHttpApiClient } from './httpClients/slackHttpClient';
 import { FreeeAuthenticationService, FreeeService, IFreeeAuthenticationService } from './services/freeeHrService';
-import { WeekdayService } from './services/weekdayService';
+import { IWeekdayService, WeekdayService } from './services/weekdayService';
 import { CognitoOAuth2Service, ILoginAuthenticationService } from './services/oauth2Service';
 import { LoginController } from './controllers/login';
 
