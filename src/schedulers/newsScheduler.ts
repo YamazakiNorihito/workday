@@ -1,6 +1,6 @@
 import { CronJob } from 'cron';
 import { inject, singleton } from 'tsyringe';
-import { RSSFeedService } from '../services/rssFeedService';
+import { IRSSFeedService, RSSFeedService } from '../services/rssFeedService';
 import { PostMessageService } from '../services/postMessageService';
 import { RSSFeed } from '../repositories/rssFeedRepository';
 
@@ -9,7 +9,7 @@ export class NewsScheduler {
     private fetchJob: CronJob;
     private notificationJob: CronJob;
 
-    constructor(@inject(RSSFeedService) private readonly _rssFeedService: RSSFeedService,
+    constructor(@inject(RSSFeedService) private readonly _rssFeedService: IRSSFeedService,
         @inject(PostMessageService) private readonly _postMessageService: PostMessageService) {
         this.fetchJob = new CronJob(
             '*/20 * * * *',

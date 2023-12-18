@@ -5,7 +5,7 @@ import path from 'path';
 import { inject, singleton } from 'tsyringe';
 
 import { HackerNewsService } from '../services/hackerNewsService';
-import { RSSFeedService } from '../services/rssFeedService';
+import { IRSSFeedService, RSSFeedService } from '../services/rssFeedService';
 import { RSSFeed, RSSFeedItem } from '../repositories/rssFeedRepository';
 import { categoryFeeds } from '../schedulers/newsScheduler';
 
@@ -13,7 +13,7 @@ import { categoryFeeds } from '../schedulers/newsScheduler';
 export class NewsController {
     constructor(
         @inject(HackerNewsService) private readonly hackerNewsService: HackerNewsService,
-        @inject(RSSFeedService) private readonly rssFeedService: RSSFeedService) { }
+        @inject(RSSFeedService) private readonly rssFeedService: IRSSFeedService) { }
 
     public async getHackerNewsTopStories(req: Request, res: Response): Promise<void> {
 
