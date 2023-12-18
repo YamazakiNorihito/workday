@@ -104,7 +104,7 @@ describe('WeekdayService', () => {
             expect(workDays).toHaveLength(0);
             expect(mockedAxios.get).toHaveBeenCalledTimes(1);
         });
-        it('fromDateとtoが逆転している場合は、空であるべき', async () => {
+        it('should return an empty list of workdays when fromDate and toDate are reversed', async () => {
             mockedAxios.get.mockResolvedValue({ data: {} });
             const fromDate = new Date('2023-05-01');
             const toDate = new Date('2022-04-28');
@@ -113,7 +113,7 @@ describe('WeekdayService', () => {
             expect(workDays).toHaveLength(0);
             expect(mockedAxios.get).toHaveBeenCalledTimes(1);
         });
-        it('Exceptionが発生したら呼び出し元まで伝播すること', async () => {
+        it('should propagate the exception to the caller in case of an error', async () => {
             mockedAxios.get.mockRejectedValue(new Error('Network Error'));
             const fromDate = new Date('2023-05-13');
             const toDate = new Date('2023-05-14');
