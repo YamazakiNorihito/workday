@@ -2,8 +2,12 @@ import { inject, singleton } from "tsyringe";
 import { SlackHttpApiClient } from "../httpClients/slackHttpClient";
 import { RSSFeed } from "../repositories/rssFeedRepository";
 
+export interface IPostMessageService {
+    postFeedToSlack(feed: RSSFeed, channelId: string, fromName: string): Promise<void>;
+}
+
 @singleton()
-export class PostMessageService {
+export class PostMessageService implements IPostMessageService {
     constructor(
         @inject(SlackHttpApiClient) private slackHttpApiClient: SlackHttpApiClient
     ) { }
