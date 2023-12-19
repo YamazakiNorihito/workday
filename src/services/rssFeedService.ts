@@ -66,7 +66,7 @@ export class RSSFeedService {
         const rssFeedItems: RSSFeedItem[] = feed.items.map(item => ({
             title: item.title,
             link: item.link,
-            pubDate: item.pubDate,
+            pubDate: item.pubDate ? new Date(item.pubDate) : undefined,
             contentSnippet: item.contentSnippet,
             categories: item.categories
         }));
