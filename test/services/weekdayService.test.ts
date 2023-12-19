@@ -114,10 +114,12 @@ describe('WeekdayService', () => {
             expect(mockedAxios.get).toHaveBeenCalledTimes(1);
         });
         it('should propagate the exception to the caller in case of an error', async () => {
+            // Arrange
             mockedAxios.get.mockRejectedValue(new Error('Network Error'));
             const fromDate = new Date('2023-05-13');
             const toDate = new Date('2023-05-14');
 
+            // Act&Assert
             await expect(weekdayService.getWorkDays(fromDate, toDate))
                 .rejects
                 .toThrow('Network Error');
