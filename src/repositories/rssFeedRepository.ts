@@ -55,7 +55,7 @@ export class RSSFeedRepository implements IRSSFeedRepository {
 export interface RSSFeedItem {
     title?: string;
     link?: string;
-    pubDate?: string;
+    pubDate?: Date;
     description?: string;
     contentSnippet?: string;
     categories?: string[];
