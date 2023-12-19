@@ -9,7 +9,7 @@ export interface IRSSFeedService {
 }
 
 @singleton()
-export class RSSFeedService {
+export class RSSFeedService implements IRSSFeedService {
 
     constructor(@inject(RSSFeedRepository) private readonly _rssFeedRepository: IRSSFeedRepository) { }
 
