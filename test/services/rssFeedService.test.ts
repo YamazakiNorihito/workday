@@ -111,7 +111,7 @@ describe('IRSSFeedService', () => {
 
         const testCases = [
             {
-                description: 'Standard feed with multiple items',
+                description: 'Multiple Items Standard Feed',
                 feedUrl: 'http://example.com/rss',
                 mockFeedData: {
                     title: "Example RSS Feed",
@@ -131,7 +131,7 @@ describe('IRSSFeedService', () => {
                 }
             },
             {
-                description: 'Should correctly process a feed containing a single item',
+                description: 'Single Item Feed',
                 feedUrl: 'http://example.com/rss',
                 mockFeedData: {
                     title: "Example RSS Feed",
@@ -168,7 +168,7 @@ describe('IRSSFeedService', () => {
                 }
             },
             {
-                description: 'Should accurately handle a feed with multiple items',
+                description: 'Multiple Items Feed',
                 feedUrl: 'http://example.com/rss',
                 mockFeedData: {
                     title: "Example RSS Feed",
@@ -220,7 +220,7 @@ describe('IRSSFeedService', () => {
                 }
             },
             {
-                description: 'Should process a feed correctly even when the title is missing',
+                description: 'Missing Title Feed',
                 feedUrl: 'http://example.com/rss',
                 mockFeedData: {
                     title: "",
@@ -240,7 +240,7 @@ describe('IRSSFeedService', () => {
                 }
             },
             {
-                description: 'Should process a feed correctly even when the link is missing',
+                description: 'Missing Link Feed',
                 feedUrl: 'http://example.com/rss',
                 mockFeedData: {
                     title: "Example RSS Feed",
@@ -260,7 +260,7 @@ describe('IRSSFeedService', () => {
                 }
             },
             {
-                description: 'Should process a feed correctly even when the description is missing',
+                description: 'Missing Description Feed',
                 feedUrl: 'http://example.com/rss',
                 mockFeedData: {
                     title: "Example RSS Feed",
@@ -280,7 +280,7 @@ describe('IRSSFeedService', () => {
                 }
             },
             {
-                description: 'Should correctly handle an item with an empty title in the items array',
+                description: 'Empty Item Title',
                 feedUrl: 'http://example.com/rss',
                 mockFeedData: {
                     title: "Example RSS Feed",
@@ -317,7 +317,7 @@ describe('IRSSFeedService', () => {
                 }
             },
             {
-                description: 'Should correctly handle an item with an empty link in the items array',
+                description: 'Empty Item Link',
                 feedUrl: 'http://example.com/rss',
                 mockFeedData: {
                     title: "Example RSS Feed",
@@ -354,7 +354,7 @@ describe('IRSSFeedService', () => {
                 }
             },
             {
-                description: 'Should correctly handle an item with an empty pubDate in the items array',
+                description: 'Empty Item PubDate',
                 feedUrl: 'http://example.com/rss',
                 mockFeedData: {
                     title: "Example RSS Feed",
@@ -390,7 +390,7 @@ describe('IRSSFeedService', () => {
                 }
             },
             {
-                description: 'Should correctly handle an item with an empty categories in the items array',
+                description: 'Empty Item Categories',
                 feedUrl: 'http://example.com/rss',
                 mockFeedData: {
                     title: "Example RSS Feed",
@@ -445,6 +445,19 @@ describe('IRSSFeedService', () => {
                     expectedSaveArg
                 );
             });
+        });
+
+        it('Should propagate the exception when an error occurs during data retrieval from the repository', async () => {
+            // Arrange
+            const mockParseURL = jest.fn().mockRejectedValue(new Error('Network Error'));
+            (Parser as jest.MockedClass<typeof Parser>).mockImplementation(() => ({
+                parseURL: mockParseURL,
+                parseString: jest.fn()
+            }));
+
+            const feedUrl = 'http://example.com/rss';
+            // Act & Assert
+            await expect(rssFeedService.getAndSaveRSSFeed(feedUrl)).rejects.toThrow('Network Error');
         });
     })
 })
