@@ -60,7 +60,6 @@ describe('IOAuth2Service', () => {
                         token_type: 'Bearer'
                     }
                 };
-
                 mockedAxios.post.mockResolvedValue(mockResponse);
 
                 const loginAuthenticationService: ILoginAuthenticationService =
@@ -68,6 +67,32 @@ describe('IOAuth2Service', () => {
 
                 // Act
                 const actual = await loginAuthenticationService.getAccessToken(authorizationCode, redirectUri);
+
+                // Assert
+                expect(actual).toEqual({
+                    id_token: 'test-id-token',
+                    access_token: 'test-access-token',
+                    refresh_token: 'test-refresh-token',
+                    expires_in: 3600,
+                    token_type: 'Bearer'
+                });
+            });
+
+            it('should send a correctly formatted request for getting an access token', async () => {
+                // Axiosの実装に依存するため、HttpClientが変わるごとに修正しないといけないUTです。
+                // Arrange
+                const cognitoDomain = 'https://example.com';
+                const cognitoUserPoolURL = 'https://example-user-pool.com';
+                const clientId = 'test-client-id';
+                const clientSecret = 'test-client-secret';
+                const redirectUri = 'https://callback.com/authorize/callback';
+                const authorizationCode = 'valid-authorization-code';
+
+                const loginAuthenticationService: ILoginAuthenticationService =
+                    new CognitoOAuth2Service(cognitoDomain, cognitoUserPoolURL, clientId, clientSecret);
+
+                // Act
+                await loginAuthenticationService.getAccessToken(authorizationCode, redirectUri);
 
                 // Assert
                 expect(mockedAxios.post).toHaveBeenCalledWith(
@@ -85,13 +110,6 @@ describe('IOAuth2Service', () => {
                         }
                     }
                 );
-                expect(actual).toEqual({
-                    id_token: 'test-id-token',
-                    access_token: 'test-access-token',
-                    refresh_token: 'test-refresh-token',
-                    expires_in: 3600,
-                    token_type: 'Bearer'
-                });
             });
 
             it('should propagate the exception to the caller in case of an error', async () => {
@@ -280,7 +298,7 @@ describe('IOAuth2Service', () => {
                 const clientSecret = 'test-client-secret';
                 const refreshToken = 'valid-refresh-token';
 
-                const mockResponse = {
+                mockedAxios.post.mockResolvedValue({
                     data: {
                         access_token: 'new-access-token',
                         id_token: 'new-id-token',
@@ -288,15 +306,38 @@ describe('IOAuth2Service', () => {
                         expires_in: 3600,
                         token_type: 'Bearer'
                     }
-                };
-
-                mockedAxios.post.mockResolvedValue(mockResponse);
+                });
 
                 const loginAuthenticationService: ILoginAuthenticationService =
                     new CognitoOAuth2Service(cognitoDomain, cognitoUserPoolURL, clientId, clientSecret);
 
                 // Act
                 const actual = await loginAuthenticationService.refreshToken(refreshToken);
+
+                // Assert
+                expect(actual).toEqual({
+                    access_token: 'new-access-token',
+                    id_token: 'new-id-token',
+                    refresh_token: 'new-refresh-token',
+                    expires_in: 3600,
+                    token_type: 'Bearer'
+                });
+            });
+
+            it('should correctly send a request to refresh the token', async () => {
+                // Axiosの実装に依存するため、HttpClientが変わるごとに修正しないといけないUTです。
+                // Arrange
+                const cognitoDomain = 'https://example.com';
+                const cognitoUserPoolURL = 'https://example-user-pool.com';
+                const clientId = 'test-client-id';
+                const clientSecret = 'test-client-secret';
+                const refreshToken = 'valid-refresh-token';
+
+                const loginAuthenticationService: ILoginAuthenticationService =
+                    new CognitoOAuth2Service(cognitoDomain, cognitoUserPoolURL, clientId, clientSecret);
+
+                // Act
+                await loginAuthenticationService.refreshToken(refreshToken);
 
                 // Assert
                 expect(mockedAxios.post).toHaveBeenCalledWith(
@@ -313,13 +354,6 @@ describe('IOAuth2Service', () => {
                         }
                     }
                 );
-                expect(actual).toEqual({
-                    access_token: 'new-access-token',
-                    id_token: 'new-id-token',
-                    refresh_token: 'new-refresh-token',
-                    expires_in: 3600,
-                    token_type: 'Bearer'
-                });
             });
 
             it('should propagate the exception to the caller in case of an error', async () => {
