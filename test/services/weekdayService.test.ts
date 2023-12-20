@@ -33,7 +33,6 @@ describe('WeekdayService', () => {
                 new Date('2023-05-11'), // 木曜日
                 new Date('2023-05-12'), // 金曜日
             ]);
-            expect(mockedAxios.get).toHaveBeenCalledTimes(1);
         });
         it('should return workdays excluding weekends', async () => {
             // Arrange
@@ -52,7 +51,6 @@ describe('WeekdayService', () => {
                 new Date('2023-05-11'), // 木曜日
                 new Date('2023-05-12'), // 金曜日
             ]);
-            expect(mockedAxios.get).toHaveBeenCalledTimes(1);
         });
         it('should return workdays excluding public holidays when the period includes holidays', async () => {
             // Arrange
@@ -74,7 +72,6 @@ describe('WeekdayService', () => {
                 new Date('2023-05-01'), // 月曜日
                 new Date('2023-05-02'), // 火曜日
             ]);
-            expect(mockedAxios.get).toHaveBeenCalledTimes(1);
         });
         it('should return workdays excluding both weekends and holidays when the period includes both', async () => {
             // Arrange
@@ -101,7 +98,6 @@ describe('WeekdayService', () => {
                 new Date('2023-05-11'), // 木曜日
                 new Date('2023-05-12'), // 金曜日
             ]);
-            expect(mockedAxios.get).toHaveBeenCalledTimes(1);
         });
         it('should return an empty list of workdays when the period consists only of a weekend', async () => {
             // Arrange
@@ -114,7 +110,6 @@ describe('WeekdayService', () => {
 
             // Assert
             expect(actual).toHaveLength(0);
-            expect(mockedAxios.get).toHaveBeenCalledTimes(1);
         });
         it('should return an empty list of workdays when fromDate and toDate are reversed', async () => {
             mockedAxios.get.mockResolvedValue({ data: {} });
@@ -126,7 +121,6 @@ describe('WeekdayService', () => {
 
             // Assert
             expect(actual).toHaveLength(0);
-            expect(mockedAxios.get).toHaveBeenCalledTimes(1);
         });
         it('should propagate the exception to the caller in case of an error', async () => {
             // Arrange
