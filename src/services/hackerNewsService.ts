@@ -1,14 +1,14 @@
 import axios, { AxiosInstance } from "axios";
 import { inject, singleton } from "tsyringe";
 import { Semaphore } from "../system/semaphore";
-import { BaseHackerNewsItem, HackerNewsItem, HackerNewsRepository } from "../repositories/hackerNewsRepository";
+import { BaseHackerNewsItem, HackerNewsItem, HackerNewsRepository, IHackerNewsRepository } from "../repositories/hackerNewsRepository";
 
 @singleton()
 export class HackerNewsService {
     private hackerNewsHttpClient: AxiosInstance;
 
     constructor(
-        @inject(HackerNewsRepository) private readonly _hackerNewsRepository: HackerNewsRepository) {
+        @inject(HackerNewsRepository) private readonly _hackerNewsRepository: IHackerNewsRepository) {
         this.hackerNewsHttpClient = axios.create({
             baseURL: 'https://hacker-news.firebaseio.com/v0'
         });

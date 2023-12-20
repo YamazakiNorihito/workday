@@ -1,7 +1,12 @@
 import { SchemaFieldTypes, RedisClientType } from 'redis';
 import { inject, singleton } from "tsyringe";
+
+export interface IHackerNewsRepository {
+    save(itemId: number, item: HackerNewsItem): Promise<void>;
+    get(itemId: number): Promise<HackerNewsItem | null>;
+}
 @singleton()
-export class HackerNewsRepository {
+export class HackerNewsRepository implements IHackerNewsRepository {
     constructor(
         @inject("RedisClient") private readonly redisClient: RedisClientType
     ) {
