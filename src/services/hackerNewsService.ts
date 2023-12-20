@@ -3,8 +3,18 @@ import { inject, singleton } from "tsyringe";
 import { Semaphore } from "../system/semaphore";
 import { BaseHackerNewsItem, HackerNewsItem, HackerNewsRepository, IHackerNewsRepository } from "../repositories/hackerNewsRepository";
 
+export interface IHackerNewsService {
+    getTopStories(): Promise<BaseHackerNewsItem[]>;
+    getNewStories(): Promise<BaseHackerNewsItem[]>;
+    getBestStories(): Promise<BaseHackerNewsItem[]>;
+    getAskHNStories(): Promise<BaseHackerNewsItem[]>;
+    getJobStories(): Promise<BaseHackerNewsItem[]>;
+    getMaxItem(): Promise<number>;
+    getItem(itemId: number): Promise<HackerNewsItem>;
+}
+
 @singleton()
-export class HackerNewsService {
+export class HackerNewsService implements IHackerNewsService {
     private hackerNewsHttpClient: AxiosInstance;
 
     constructor(
