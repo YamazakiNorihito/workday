@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import axios from 'axios';
+import { ILoginAuthenticationService, CognitoOAuth2Service } from '../../src/services/oauth2Service';
 
 jest.mock('axios');
 
@@ -12,10 +13,18 @@ describe('IOAuth2Service', () => {
         });
 
         describe('getAuthorizationUrl', () => {
-            it(``, async () => {
+            it(`should return the correct authorization URL with necessary query parameters`, async () => {
                 // Arrange
+                const cognitoDomain = 'https://example.com';
+                const cognitoUserPoolURL = 'https://example-user-pool.com';
+                const clientId = 'test-client-id';
+                const clientSecret = 'test-client-secret';
+                const callbackUrl = 'https://callback.com/authorize/callback';
 
                 // Act
+                const loginAuthenticationService: ILoginAuthenticationService =
+                    new CognitoOAuth2Service(cognitoDomain, cognitoUserPoolURL, clientId, clientSecret);
+                const act = loginAuthenticationService.getAuthorizationUrl(callbackUrl);
 
                 // Assert
             });

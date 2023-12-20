@@ -107,7 +107,7 @@ describe('IRSSFeedService', () => {
                 const channelId = "ut_channel"
                 const fromName = "ut_name"
 
-                // Act (Call the method you want to test)
+                // Act
                 await postMessageService.postFeedToSlack(mockFeedData, channelId, fromName)
 
                 // Assert
