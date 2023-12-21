@@ -78,6 +78,6 @@ export class HackerNewsService implements IHackerNewsService {
             });
         });
 
-        return items.filter(item => item && item.type === 'story') as HackerNewsItem[];
+        return items as HackerNewsItem[];
     }
 }
