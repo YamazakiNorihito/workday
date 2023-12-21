@@ -1,7 +1,7 @@
 
 import 'reflect-metadata';
 import axios from 'axios';
-import { IWeekdayService, WeekdayService } from './../../src/services/weekdayService'
+import { IWeekdayService, WeekdayService } from '../../src/services/weekdayService'
 
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 jest.mock('axios');

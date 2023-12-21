@@ -1,6 +1,5 @@
 import axios, { AxiosInstance } from "axios";
 import { inject, singleton } from "tsyringe";
-import { Semaphore } from "../system/semaphore";
 import { BaseHackerNewsItem, HackerNewsItem, HackerNewsRepository, IHackerNewsRepository } from "../repositories/hackerNewsRepository";
 
 export interface IHackerNewsService {
