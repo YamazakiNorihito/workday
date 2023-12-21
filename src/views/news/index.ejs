@@ -10,11 +10,11 @@
             <% stories.forEach(function(story) { %>
                 <div class="grid-x grid-margin-x">
                     <div class="large-12 cell">
-                        <h5><a href="https://news.ycombinator.com/item?id=<%= story.id %>" target="_blank">
-                                <%= story.title %>
+                        <h5><a href="https://news.ycombinator.com/item?id=<%= story?.id %>" target="_blank">
+                                [<%= story.type %>]<%= story.title %>
                             </a></h5>
                         <p>
-                            <span><i class="fi-torso"> By <%= story.by %> </i></span>
+                            <span><i class="fi-torso"> By <%= story?.by %> </i></span>
                             <span><i class="fi-calendar">
                                     <%= new Date(story.time * 1000).toLocaleString() %>
                                 </i></span>

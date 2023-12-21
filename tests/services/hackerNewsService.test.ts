@@ -208,6 +208,42 @@ describe('IHackerNewsService', () => {
                     score: 120,
                     title: 'Example Story 1',
                     descendants: 15,
+                },
+                {
+                    id: 2021,
+                    type: 'job',
+                    by: 'new_company1',
+                    time: 1618001100,
+                    text: 'New job description here for job 1',
+                    url: 'https://example.com/new_job1',
+                    title: 'New Example Job 1',
+                },
+                {
+                    id: 3021,
+                    type: 'comment',
+                    by: 'new_commenter1',
+                    time: 1618001300,
+                    text: 'New Example comment 1',
+                    parent: 1011,
+                },
+                {
+                    id: 4021,
+                    type: 'poll',
+                    by: 'new_poll_creator1',
+                    time: 1618001500,
+                    text: 'New Poll description for poll 1',
+                    score: 30,
+                    title: 'New Example Poll 1',
+                    parts: [5021],
+                    descendants: 1,
+                },
+                {
+                    id: 5021,
+                    type: 'pollopt',
+                    by: 'new_pollopt_author1',
+                    time: 1618001700,
+                    parent: 4021,
+                    score: 10,
                 },]);
         });
 
@@ -427,6 +463,42 @@ describe('IHackerNewsService', () => {
                     score: 120,
                     title: 'Example Story 1',
                     descendants: 15,
+                },
+                {
+                    id: 2021,
+                    type: 'job',
+                    by: 'new_company1',
+                    time: 1618001100,
+                    text: 'New job description here for job 1',
+                    url: 'https://example.com/new_job1',
+                    title: 'New Example Job 1',
+                },
+                {
+                    id: 3021,
+                    type: 'comment',
+                    by: 'new_commenter1',
+                    time: 1618001300,
+                    text: 'New Example comment 1',
+                    parent: 1011,
+                },
+                {
+                    id: 4021,
+                    type: 'poll',
+                    by: 'new_poll_creator1',
+                    time: 1618001500,
+                    text: 'New Poll description for poll 1',
+                    score: 30,
+                    title: 'New Example Poll 1',
+                    parts: [5021],
+                    descendants: 1,
+                },
+                {
+                    id: 5021,
+                    type: 'pollopt',
+                    by: 'new_pollopt_author1',
+                    time: 1618001700,
+                    parent: 4021,
+                    score: 10,
                 },]);
         });
 
@@ -646,6 +718,42 @@ describe('IHackerNewsService', () => {
                     score: 120,
                     title: 'Example Story 1',
                     descendants: 15,
+                },
+                {
+                    id: 2021,
+                    type: 'job',
+                    by: 'new_company1',
+                    time: 1618001100,
+                    text: 'New job description here for job 1',
+                    url: 'https://example.com/new_job1',
+                    title: 'New Example Job 1',
+                },
+                {
+                    id: 3021,
+                    type: 'comment',
+                    by: 'new_commenter1',
+                    time: 1618001300,
+                    text: 'New Example comment 1',
+                    parent: 1011,
+                },
+                {
+                    id: 4021,
+                    type: 'poll',
+                    by: 'new_poll_creator1',
+                    time: 1618001500,
+                    text: 'New Poll description for poll 1',
+                    score: 30,
+                    title: 'New Example Poll 1',
+                    parts: [5021],
+                    descendants: 1,
+                },
+                {
+                    id: 5021,
+                    type: 'pollopt',
+                    by: 'new_pollopt_author1',
+                    time: 1618001700,
+                    parent: 4021,
+                    score: 10,
                 },]);
         });
 
@@ -813,27 +921,26 @@ describe('IHackerNewsService', () => {
                     descendants: 5,
                 },
             );
-            expect(actual).toEqual([
-                {
-                    id: 1001,
-                    type: 'story',
-                    by: 'author1',
-                    time: 1618000000,
-                    url: 'https://example.com/story1',
-                    score: 120,
-                    title: 'Example Story 1',
-                    descendants: 15,
-                },
-                {
-                    id: 1011,
-                    type: 'story',
-                    by: 'new_author1',
-                    time: 1618001000,
-                    url: 'https://example.com/new_story1',
-                    score: 90,
-                    title: 'New Example Story 1',
-                    descendants: 5,
-                }]);
+            expect(actual).toEqual([{
+                id: 1001,
+                type: 'story',
+                by: 'author1',
+                time: 1618000000,
+                url: 'https://example.com/story1',
+                score: 120,
+                title: 'Example Story 1',
+                descendants: 15,
+            },
+            {
+                id: 1011,
+                type: 'story',
+                by: 'new_author1',
+                time: 1618001000,
+                url: 'https://example.com/new_story1',
+                score: 90,
+                title: 'New Example Story 1',
+                descendants: 5,
+            },]);
         });
         it('should Return Only Story Type Items From Stories', async () => {
             // Arrange
@@ -855,17 +962,52 @@ describe('IHackerNewsService', () => {
 
             // Assert
             expect(mockedAxios.get).toHaveBeenCalledWith('/askstories.json');
-            expect(actual).toEqual([
-                {
-                    id: 1001,
-                    type: 'story',
-                    by: 'author1',
-                    time: 1618000000,
-                    url: 'https://example.com/story1',
-                    score: 120,
-                    title: 'Example Story 1',
-                    descendants: 15,
-                },]);
+            expect(actual).toEqual([{
+                id: 1001,
+                type: 'story',
+                by: 'author1',
+                time: 1618000000,
+                url: 'https://example.com/story1',
+                score: 120,
+                title: 'Example Story 1',
+                descendants: 15,
+            },
+            {
+                id: 2021,
+                type: 'job',
+                by: 'new_company1',
+                time: 1618001100,
+                text: 'New job description here for job 1',
+                url: 'https://example.com/new_job1',
+                title: 'New Example Job 1',
+            },
+            {
+                id: 3021,
+                type: 'comment',
+                by: 'new_commenter1',
+                time: 1618001300,
+                text: 'New Example comment 1',
+                parent: 1011,
+            },
+            {
+                id: 4021,
+                type: 'poll',
+                by: 'new_poll_creator1',
+                time: 1618001500,
+                text: 'New Poll description for poll 1',
+                score: 30,
+                title: 'New Example Poll 1',
+                parts: [5021],
+                descendants: 1,
+            },
+            {
+                id: 5021,
+                type: 'pollopt',
+                by: 'new_pollopt_author1',
+                time: 1618001700,
+                parent: 4021,
+                score: 10,
+            },]);
         });
 
         it('should propagate the exception to the caller in case of an error', async () => {
@@ -1074,17 +1216,52 @@ describe('IHackerNewsService', () => {
 
             // Assert
             expect(mockedAxios.get).toHaveBeenCalledWith('/showstories.json');
-            expect(actual).toEqual([
-                {
-                    id: 1001,
-                    type: 'story',
-                    by: 'author1',
-                    time: 1618000000,
-                    url: 'https://example.com/story1',
-                    score: 120,
-                    title: 'Example Story 1',
-                    descendants: 15,
-                },]);
+            expect(actual).toEqual([{
+                id: 1001,
+                type: 'story',
+                by: 'author1',
+                time: 1618000000,
+                url: 'https://example.com/story1',
+                score: 120,
+                title: 'Example Story 1',
+                descendants: 15,
+            },
+            {
+                id: 2021,
+                type: 'job',
+                by: 'new_company1',
+                time: 1618001100,
+                text: 'New job description here for job 1',
+                url: 'https://example.com/new_job1',
+                title: 'New Example Job 1',
+            },
+            {
+                id: 3021,
+                type: 'comment',
+                by: 'new_commenter1',
+                time: 1618001300,
+                text: 'New Example comment 1',
+                parent: 1011,
+            },
+            {
+                id: 4021,
+                type: 'poll',
+                by: 'new_poll_creator1',
+                time: 1618001500,
+                text: 'New Poll description for poll 1',
+                score: 30,
+                title: 'New Example Poll 1',
+                parts: [5021],
+                descendants: 1,
+            },
+            {
+                id: 5021,
+                type: 'pollopt',
+                by: 'new_pollopt_author1',
+                time: 1618001700,
+                parent: 4021,
+                score: 10,
+            },]);
         });
 
         it('should propagate the exception to the caller in case of an error', async () => {
@@ -1293,17 +1470,52 @@ describe('IHackerNewsService', () => {
 
             // Assert
             expect(mockedAxios.get).toHaveBeenCalledWith('/jobstories.json');
-            expect(actual).toEqual([
-                {
-                    id: 1001,
-                    type: 'story',
-                    by: 'author1',
-                    time: 1618000000,
-                    url: 'https://example.com/story1',
-                    score: 120,
-                    title: 'Example Story 1',
-                    descendants: 15,
-                },]);
+            expect(actual).toEqual([{
+                id: 1001,
+                type: 'story',
+                by: 'author1',
+                time: 1618000000,
+                url: 'https://example.com/story1',
+                score: 120,
+                title: 'Example Story 1',
+                descendants: 15,
+            },
+            {
+                id: 2021,
+                type: 'job',
+                by: 'new_company1',
+                time: 1618001100,
+                text: 'New job description here for job 1',
+                url: 'https://example.com/new_job1',
+                title: 'New Example Job 1',
+            },
+            {
+                id: 3021,
+                type: 'comment',
+                by: 'new_commenter1',
+                time: 1618001300,
+                text: 'New Example comment 1',
+                parent: 1011,
+            },
+            {
+                id: 4021,
+                type: 'poll',
+                by: 'new_poll_creator1',
+                time: 1618001500,
+                text: 'New Poll description for poll 1',
+                score: 30,
+                title: 'New Example Poll 1',
+                parts: [5021],
+                descendants: 1,
+            },
+            {
+                id: 5021,
+                type: 'pollopt',
+                by: 'new_pollopt_author1',
+                time: 1618001700,
+                parent: 4021,
+                score: 10,
+            },]);
         });
 
         it('should propagate the exception to the caller in case of an error', async () => {
