@@ -7,6 +7,7 @@ export interface IHackerNewsService {
     getNewStories(): Promise<BaseHackerNewsItem[]>;
     getBestStories(): Promise<BaseHackerNewsItem[]>;
     getAskHNStories(): Promise<BaseHackerNewsItem[]>;
+    getShowHNStories(): Promise<BaseHackerNewsItem[]>;
     getJobStories(): Promise<BaseHackerNewsItem[]>;
     getMaxItem(): Promise<number>;
     getItem(itemId: number): Promise<HackerNewsItem>;
@@ -14,7 +15,7 @@ export interface IHackerNewsService {
 
 @singleton()
 export class HackerNewsService implements IHackerNewsService {
-    private hackerNewsHttpClient: AxiosInstance;
+    protected hackerNewsHttpClient: AxiosInstance;
 
     constructor(
         @inject(HackerNewsRepository) private readonly _hackerNewsRepository: IHackerNewsRepository) {
@@ -45,7 +46,6 @@ export class HackerNewsService implements IHackerNewsService {
     public async getJobStories(): Promise<BaseHackerNewsItem[]> {
         return this.getStories('/jobstories.json');
     }
-
 
     public async getMaxItem(): Promise<number> {
         const response = await this.hackerNewsHttpClient.get('/maxitem.json');
