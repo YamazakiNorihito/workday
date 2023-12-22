@@ -324,7 +324,7 @@ describe('IHackerNewsService', () => {
             mockedAxios.get.mockResolvedValueOnce({ data: mockTopStoryIds });
 
             mockHackerNewsRepository.get.mockImplementation(id =>
-                Promise.resolve(mockHackerNewsItems.find(story => story.id === id) ?? null)
+                Promise.resolve(null)
             );
 
             // Act
@@ -1591,7 +1591,36 @@ describe('IHackerNewsService', () => {
             hackerNewsService = new HackerNewsService(mockHackerNewsRepository);
         });
 
-        it('Jobの取得ができること', async () => {
+        it('should Fetch An Item From The Database', async () => {
+            // Arrange
+            mockHackerNewsRepository.get.mockResolvedValue(
+                {
+                    id: 3001,
+                    type: 'comment',
+                    by: 'commenter1',
+                    time: 1618000300,
+                    text: 'Example comment 1',
+                    parent: 1001,
+                });
+
+            // Act
+            const actual = await hackerNewsService.getItem(3001);
+
+            // Assert
+            expect(mockHackerNewsRepository.get).toBeCalledWith(3001)
+            expect(mockedAxios.get).toBeCalledTimes(0)
+            expect(actual).toEqual(
+                {
+                    id: 3001,
+                    type: 'comment',
+                    by: 'commenter1',
+                    time: 1618000300,
+                    text: 'Example comment 1',
+                    parent: 1001,
+                });
+        });
+
+        it('should Fetch And Save An Item From The API If Not In The Database', async () => {
             // Arrange
             mockedAxios.get.mockResolvedValueOnce({
                 data:
@@ -1640,7 +1669,7 @@ class MockHackerNewsService extends HackerNewsService {
         super(mockHackerNewsRepository);
     }
 
-    public async getItem(itemId: number): Promise<HackerNewsItem> {
+    protected async getAndSave(itemId: number): Promise<HackerNewsItem> {
         const response = mockUnRegisteredHackerNewsItems.find(o => o.id === itemId);
         if (!response) {
             // アイテムが見つからない場合の処理
@@ -1649,6 +1678,8 @@ class MockHackerNewsService extends HackerNewsService {
             // またはデフォルト値を返す
             // return Promise.resolve(/* デフォルトのHackerNewsItem */);
         }
+
+        this._hackerNewsRepository.save(itemId, response);
 
         return Promise.resolve(response);
     }

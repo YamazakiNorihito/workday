@@ -18,7 +18,7 @@ export class HackerNewsService implements IHackerNewsService {
     protected hackerNewsHttpClient: AxiosInstance;
 
     constructor(
-        @inject(HackerNewsRepository) private readonly _hackerNewsRepository: IHackerNewsRepository) {
+        @inject(HackerNewsRepository) protected readonly _hackerNewsRepository: IHackerNewsRepository) {
         this.hackerNewsHttpClient = axios.create({
             baseURL: 'https://hacker-news.firebaseio.com/v0'
         });
@@ -53,8 +53,11 @@ export class HackerNewsService implements IHackerNewsService {
     }
 
     public async getItem(itemId: number): Promise<HackerNewsItem> {
-        const response = await this.hackerNewsHttpClient.get<HackerNewsItem>(`/item/${itemId}.json`);
-        return response.data;
+        const item = await this._hackerNewsRepository.get(itemId);
+        if (item) {
+            return item;
+        }
+        return this.getAndSave(itemId);
     }
 
     private async getStories(endpoint: string): Promise<BaseHackerNewsItem[]> {
@@ -65,9 +68,7 @@ export class HackerNewsService implements IHackerNewsService {
         const missingItemIds = itemIds.filter((id, index) => !items[index]);
         await Promise.all(missingItemIds.map(async itemId => {
             try {
-                const fetchNews = await this.getItem(itemId);
-                await this._hackerNewsRepository.save(fetchNews.id, fetchNews);
-                return fetchNews;
+                return await this.getAndSave(itemId);
             } catch (error) {
                 console.error(`Error fetching item ${itemId}:`, error);
                 return null;
@@ -79,5 +80,12 @@ export class HackerNewsService implements IHackerNewsService {
         });
 
         return items as HackerNewsItem[];
+    }
+
+    protected async getAndSave(itemId: number): Promise<HackerNewsItem> {
+        const response = await this.hackerNewsHttpClient.get<HackerNewsItem>(`/item/${itemId}.json`);
+        const fetchNews = response.data;
+        await this._hackerNewsRepository.save(fetchNews.id, fetchNews);
+        return fetchNews;
     }
 }
