@@ -145,3 +145,13 @@ npm install -D 'jest@^28.0.0' 'ts-jest@^28.0.0' '@types/jest@^28.0.0'
 npx ts-jest config:init
 
 ```
+
+package.json のTestで、 TimeZoneとロケールが日本を前提にUTが作成されているため、
+Testの時だけ、 TimeZoneとロケールが日本にしている。
+
+```json
+  "scripts": {
+    "start:dev": "NODE_ENV=development nodemon ./src/app.ts",
+    "test": "TZ=Asia/Tokyo LC_ALL=ja_JP.UTF-8 jest",
+    },
+```
