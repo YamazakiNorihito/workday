@@ -206,3 +206,4 @@ redis-data/*
 .env.development
 
 workday_git_codecommit_credentials.csv
+workday_developer_accessKeys.csv

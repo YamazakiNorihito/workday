@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node dist/app.js",
     "start:dev": "NODE_ENV=development nodemon ./src/app.ts",
-    "test": "jest",
+    "test": "TZ=Asia/Tokyo LC_ALL=ja_JP.UTF-8 jest",
     "build": "tsc && cp -r src/views dist/views"
   },
   "keywords": [],
