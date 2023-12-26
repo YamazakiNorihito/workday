@@ -32,7 +32,7 @@ describe('IOAuth2Service', () => {
                 const actual = loginAuthenticationService.getAuthorizationUrl(callbackUrl);
 
                 // Assert
-                expect(actual.startsWith('https://example.com/oauth2/authorize'));
+                expect(actual).toMatch(new RegExp(`^(https://example.com/oauth2/authorize)`));
 
                 const queryParams = new URLSearchParams(actual.split('?')[1]);
                 expect(queryParams.get('response_type')).toBe('code');
