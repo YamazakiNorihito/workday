@@ -16,6 +16,15 @@ export interface FreeeOAuthTokenResponse extends OAuthTokenResponse {
 
 export interface IFreeeAuthenticationService extends IOAuth2Service<FreeeOAuthTokenResponse> { }
 
+export interface IFreeeService {
+    getAuthorizeUrl(redirectUri: string): string;
+    handleAuthCallback(userId: string, authCode: string, redirectUri: string): Promise<Employee>;
+    getWorkRecords(userId: string, year: number, month: number): Promise<WorkRecord[]>;
+    getMe(userId: string): Promise<Employee>;
+    updateWorkRecord(userId: string, workRecord: WorkRecord): Promise<void>;
+    deleteWorkRecord(userId: string, workDay: DateOnly): Promise<void>;
+}
+
 @singleton()
 export class FreeeAuthenticationService implements IFreeeAuthenticationService {
     private httpClient: AxiosInstance;
@@ -72,7 +81,7 @@ export class FreeeAuthenticationService implements IFreeeAuthenticationService {
 }
 
 @singleton()
-export class FreeeService {
+export class FreeeService implements IFreeeService {
     constructor(
         @inject("IFreeeAuthenticationService") private freeeAuthenticationService: IFreeeAuthenticationService,
         @inject(FreeeHrHttpApiClient) private freeeHrHttpApiClient: FreeeHrHttpApiClient,

@@ -226,3 +226,17 @@ describe('IFreeeAuthenticationService', () => {
         });
     })
 })
+
+
+describe('IFreeeAuthenticationService', () => {
+    let mockedAxios: jest.Mocked<typeof axios>;
+
+    beforeEach(() => {
+        mockedAxios = axios as jest.Mocked<typeof axios>;
+        mockedAxios.create.mockClear()
+        mockedAxios.post.mockClear()
+        mockedAxios.get.mockClear()
+
+        mockedAxios.create.mockReturnThis()
+    });
+})
