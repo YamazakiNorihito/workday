@@ -127,4 +127,17 @@ describe('IFreeeAuthenticationService', () => {
             expect(mockedAxios.post).toHaveBeenCalledTimes(1);
         });
     })
+
+    describe('getPublicKey', () => {
+        it('throws an exception when the public key is not published', async () => {
+            // Arrange
+            const freeeAuthenticationService: IFreeeAuthenticationService =
+                new FreeeAuthenticationService("", "");
+
+            // Act&Assert
+            await expect(freeeAuthenticationService.getPublicKey(""))
+                .rejects
+                .toThrow('公開鍵が公開されいません。');
+        });
+    })
 })
