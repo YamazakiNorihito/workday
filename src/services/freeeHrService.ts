@@ -1,6 +1,6 @@
 import { inject, singleton } from "tsyringe";
-import { FreeeHrHttpApiClient } from "../httpClients/freeeHttpClient";
-import { FreeeUserRepository, OAuth, User as UserModel } from '../repositories/freeeUserRepository';
+import { FreeeHrHttpApiClient, IFreeeHrHttpApiClient } from "../httpClients/freeeHttpClient";
+import { FreeeUserRepository, IFreeeUserRepository, OAuth, User as UserModel } from '../repositories/freeeUserRepository';
 import { WorkRecord } from '../types/workRecord';
 import { RedisClientType } from "redis";
 import { DateOnly } from "../types/dateOnly";
@@ -84,8 +84,8 @@ export class FreeeAuthenticationService implements IFreeeAuthenticationService {
 export class FreeeService implements IFreeeService {
     constructor(
         @inject("IFreeeAuthenticationService") private freeeAuthenticationService: IFreeeAuthenticationService,
-        @inject(FreeeHrHttpApiClient) private freeeHrHttpApiClient: FreeeHrHttpApiClient,
-        @inject(FreeeUserRepository) private readonly freeeUserRepository: FreeeUserRepository,
+        @inject(FreeeHrHttpApiClient) private freeeHrHttpApiClient: IFreeeHrHttpApiClient,
+        @inject(FreeeUserRepository) private readonly freeeUserRepository: IFreeeUserRepository,
         @inject("RedisClient") private readonly redisClient: RedisClientType
     ) { }
 

@@ -1,9 +1,14 @@
 import 'reflect-metadata';
 import axios from "axios";
-import { FreeeAuthenticationService, IFreeeAuthenticationService } from "../../src/services/freeeHrService";
+import redis from 'redis';
+import { FreeeAuthenticationService, FreeeService, IFreeeAuthenticationService, IFreeeService } from "../../src/services/freeeHrService";
+import { FreeeHrHttpApiClient, IFreeeHrHttpApiClient } from '../../src/httpClients/freeeHttpClient';
+import { FreeeUserRepository, IFreeeUserRepository } from '../../src/repositories/freeeUserRepository';
+import { RedisClientType } from 'redis';
 
 
 jest.mock('axios');
+jest.mock('redis', () => require('redis-mock'));
 describe('IFreeeAuthenticationService', () => {
     let mockedAxios: jest.Mocked<typeof axios>;
 
@@ -228,15 +233,66 @@ describe('IFreeeAuthenticationService', () => {
 })
 
 
-describe('IFreeeAuthenticationService', () => {
-    let mockedAxios: jest.Mocked<typeof axios>;
+describe('IFreeeService', () => {
+    let mockedFreeeAuthenticationService: jest.Mocked<IFreeeAuthenticationService>;
+    let mockedFreeeHrHttpApiClient: jest.Mocked<IFreeeHrHttpApiClient>;
+    let mockedFreeeUserRepository: jest.Mocked<IFreeeUserRepository>;
 
     beforeEach(() => {
-        mockedAxios = axios as jest.Mocked<typeof axios>;
-        mockedAxios.create.mockClear()
-        mockedAxios.post.mockClear()
-        mockedAxios.get.mockClear()
-
-        mockedAxios.create.mockReturnThis()
+        mockedFreeeAuthenticationService = {
+            getAuthorizationUrl: jest.fn(),
+            getAccessToken: jest.fn(),
+            getPublicKey: jest.fn(),
+            refreshToken: jest.fn(),
+        };
+        mockedFreeeHrHttpApiClient = {
+            get: jest.fn(),
+            post: jest.fn(),
+            put: jest.fn(),
+            delete: jest.fn(),
+        };
+        mockedFreeeUserRepository = {
+            isReady: jest.fn(),
+            save: jest.fn(),
+            get: jest.fn(),
+        };
     });
+
+    describe('getAuthorizeUrl', () => {
+        beforeEach(() => {
+            mockedFreeeAuthenticationService.getAuthorizationUrl.mockClear();
+        });
+
+        it(`should return the correct authorization URL with necessary query parameters`, () => {
+            // Arrange
+            const mockedRedisClient = redis.createClient() as RedisClientType;
+            const freeeService: IFreeeService =
+                new FreeeService(mockedFreeeAuthenticationService, mockedFreeeHrHttpApiClient, mockedFreeeUserRepository, mockedRedisClient);
+            mockedFreeeAuthenticationService.getAuthorizationUrl = jest.fn((callbackUrl: string) => {
+                return `https://test.com/public_api/authorize?client_id=clientId&redirect_uri=${callbackUrl}&response_type=code&prompt=select_company`
+            });
+            const redirectUri = 'https://callback.com/authorize/callback';
+
+            // Act
+            const actual = freeeService.getAuthorizeUrl(redirectUri);
+
+            // Assert
+            expect(actual).toBe(`https://test.com/public_api/authorize?client_id=clientId&redirect_uri=https://callback.com/authorize/callback&response_type=code&prompt=select_company`)
+        });
+
+        it('should propagate the exception to the caller in case of an error', async () => {
+            // Arrange
+            const mockedRedisClient = redis.createClient() as RedisClientType;
+            const freeeService: IFreeeService =
+                new FreeeService(mockedFreeeAuthenticationService, mockedFreeeHrHttpApiClient, mockedFreeeUserRepository, mockedRedisClient);
+            mockedFreeeAuthenticationService.getAuthorizationUrl.mockImplementation(() => {
+                throw new Error('Network Error');
+            });
+
+            // Act & Assert
+            expect(() => {
+                freeeService.getAuthorizeUrl('https://callback.com/authorize/callback')
+            }).toThrow('Network Error');
+        });
+    })
 })
