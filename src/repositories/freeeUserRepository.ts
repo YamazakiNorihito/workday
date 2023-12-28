@@ -2,8 +2,14 @@ import { SchemaFieldTypes, RedisClientType } from 'redis';
 import { inject, singleton } from "tsyringe";
 import { FreeeOAuthTokenResponse } from '../services/freeeHrService';
 
+export interface IFreeeUserRepository {
+    isReady(): boolean;
+    save(userId: string, user: User): Promise<void>;
+    get(userId: string): Promise<User | null>;
+}
+
 @singleton()
-export class FreeeUserRepository {
+export class FreeeUserRepository implements IFreeeUserRepository {
     constructor(
         @inject("RedisClient") private readonly redisClient: RedisClientType
     ) {

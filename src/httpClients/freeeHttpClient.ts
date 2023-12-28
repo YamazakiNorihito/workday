@@ -1,8 +1,15 @@
 import axios, { AxiosInstance } from 'axios';
 import { singleton } from 'tsyringe';
 
+export interface IFreeeHrHttpApiClient {
+    get<T = any>(path: string, accessToken: string): Promise<T>;
+    post<T = any>(path: string, accessToken: string, data: any): Promise<T>;
+    put<T = any>(path: string, accessToken: string, data: any): Promise<T>;
+    delete<T = any>(path: string, accessToken: string): Promise<T>;
+}
+
 @singleton()
-export class FreeeHrHttpApiClient {
+export class FreeeHrHttpApiClient implements IFreeeHrHttpApiClient {
     private baseURL = 'https://api.freee.co.jp/hr';
     private httpClient: AxiosInstance;
 
