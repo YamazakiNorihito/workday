@@ -303,7 +303,7 @@ describe('IFreeeService', () => {
             jest.spyOn(Date, 'now').mockImplementation(() => new Date('2024-01-01T00:00:00.000Z').getTime());
         });
 
-        it(`Tokenが保存され株式会社フロンティア・フィールドのMe情報が取得されるべき`, async () => {
+        it(`Should Save Token and Retrieve 'Me' Information for Frontier Field Corporation`, async () => {
             // Arrange
             const mockFreeeOAuthTokenResponse = {
                 access_token: 'test-access-token',
@@ -374,6 +374,153 @@ describe('IFreeeService', () => {
                         display_name: "鈴木一郎"
                     }
                 ],
+                oauth: {
+                    access_token: 'test-access-token',
+                    id_token: 'test-id-token',
+                    refresh_token: 'test-refresh-token',
+                    expires_in: 3600,
+                    token_type: 'Bearer',
+                    scope: 'test-scope',
+                    created_at: 1234,
+                    company_id: 5678
+                },
+                updated_at: (new Date('2024-01-01T00:00:00.000Z')).getTime()
+            });
+        });
+
+        it(`Should Save Token But Not Retrieve 'Me' Information When Frontier Field Corporation's Info is Missing`, async () => {
+            // Arrange
+            const mockFreeeOAuthTokenResponse = {
+                access_token: 'test-access-token',
+                id_token: 'test-id-token',
+                refresh_token: 'test-refresh-token',
+                expires_in: 3600,
+                token_type: 'Bearer',
+                scope: 'test-scope',
+                created_at: 1234,
+                company_id: 5678
+            };
+            mockedFreeeAuthenticationService.getAccessToken.mockResolvedValueOnce(mockFreeeOAuthTokenResponse);
+
+            const meResponse = {
+                id: 1,
+                companies: [
+                    {
+                        id: 103,
+                        name: "株式会社日経HR",
+                        role: 'self_only',
+                        external_cid: 3456789012,
+                        employee_id: 3001,
+                        display_name: "鈴木一郎"
+                    }
+                ]
+            };
+            mockedFreeeHrHttpApiClient.get.mockResolvedValueOnce(meResponse);
+
+            let actual_userId: string | null = null;
+            let actual_user: User | null = null;
+            mockedFreeeUserRepository.save.mockImplementation((userId, user) => {
+                actual_userId = userId;
+                actual_user = user;
+                return Promise.resolve();
+            })
+
+            const freeeService: IFreeeService =
+                new FreeeService(mockedFreeeAuthenticationService, mockedFreeeHrHttpApiClient, mockedFreeeUserRepository, mockedRedisClient);
+
+            const redirectUri = 'https://callback.com/authorize/callback';
+            const userId = 'test-123456';
+            const authCode = 'test-auth-code';
+            // Act
+            const actual = await freeeService.handleAuthCallback(userId, authCode, redirectUri);
+
+            // Assert
+            expect(actual).toEqual({
+                employee_id: 0,
+                employee_name: "",
+                company_id: 0,
+                company_name: "",
+                external_cid: 0,
+                role: "",
+                updated_at: null
+            });
+
+            // 保存データが正しいことを検証する
+            expect(actual_userId).toBe('test-123456');
+            expect(actual_user).toEqual({
+                id: 1,
+                companies: [
+                    {
+                        id: 103,
+                        name: "株式会社日経HR",
+                        role: 'self_only',
+                        external_cid: 3456789012,
+                        employee_id: 3001,
+                        display_name: "鈴木一郎"
+                    }
+                ],
+                oauth: {
+                    access_token: 'test-access-token',
+                    id_token: 'test-id-token',
+                    refresh_token: 'test-refresh-token',
+                    expires_in: 3600,
+                    token_type: 'Bearer',
+                    scope: 'test-scope',
+                    created_at: 1234,
+                    company_id: 5678
+                },
+                updated_at: (new Date('2024-01-01T00:00:00.000Z')).getTime()
+            });
+        });
+
+        it(`Should Save Token But Not Retrieve 'Me' Information When 'Me' Data is Absent`, async () => {
+            // Arrange
+            const mockFreeeOAuthTokenResponse = {
+                access_token: 'test-access-token',
+                id_token: 'test-id-token',
+                refresh_token: 'test-refresh-token',
+                expires_in: 3600,
+                token_type: 'Bearer',
+                scope: 'test-scope',
+                created_at: 1234,
+                company_id: 5678
+            };
+            mockedFreeeAuthenticationService.getAccessToken.mockResolvedValueOnce(mockFreeeOAuthTokenResponse);
+            mockedFreeeHrHttpApiClient.get.mockResolvedValueOnce(null);
+
+            let actual_userId: string | null = null;
+            let actual_user: User | null = null;
+            mockedFreeeUserRepository.save.mockImplementation((userId, user) => {
+                actual_userId = userId;
+                actual_user = user;
+                return Promise.resolve();
+            })
+
+            const freeeService: IFreeeService =
+                new FreeeService(mockedFreeeAuthenticationService, mockedFreeeHrHttpApiClient, mockedFreeeUserRepository, mockedRedisClient);
+
+            const redirectUri = 'https://callback.com/authorize/callback';
+            const userId = 'test-123456';
+            const authCode = 'test-auth-code';
+            // Act
+            const actual = await freeeService.handleAuthCallback(userId, authCode, redirectUri);
+
+            // Assert
+            expect(actual).toEqual({
+                employee_id: 0,
+                employee_name: "",
+                company_id: 0,
+                company_name: "",
+                external_cid: 0,
+                role: "",
+                updated_at: null
+            });
+
+            // 保存データが正しいことを検証する
+            expect(actual_userId).toBe('test-123456');
+            expect(actual_user).toEqual({
+                id: undefined,
+                companies: undefined,
                 oauth: {
                     access_token: 'test-access-token',
                     id_token: 'test-id-token',
