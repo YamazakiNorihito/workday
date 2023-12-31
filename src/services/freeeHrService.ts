@@ -98,8 +98,8 @@ export class FreeeService implements IFreeeService {
         const meResponse = await this.freeeHrHttpApiClient.get<User>('/api/v1/users/me', oauthResponse.access_token);
 
         const freeeUser: UserModel = {
-            id: meResponse.id,
-            companies: meResponse.companies,
+            id: meResponse?.id,
+            companies: meResponse?.companies,
             oauth: oauthResponse,
             updated_at: Date.now(),
         };
@@ -162,7 +162,7 @@ export class FreeeService implements IFreeeService {
     }
 
     private getInternalMe(user: UserModel): Employee {
-        if (!user) {
+        if (!user || !user.companies) {
             return {
                 employee_id: 0,
                 employee_name: "",
