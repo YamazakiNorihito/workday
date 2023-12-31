@@ -3,7 +3,7 @@ import axios from "axios";
 import redis from 'redis';
 import { FreeeAuthenticationService, FreeeService, IFreeeAuthenticationService, IFreeeService } from "../../src/services/freeeHrService";
 import { FreeeHrHttpApiClient, IFreeeHrHttpApiClient } from '../../src/httpClients/freeeHttpClient';
-import { FreeeUserRepository, IFreeeUserRepository } from '../../src/repositories/freeeUserRepository';
+import { FreeeUserRepository, IFreeeUserRepository, User } from '../../src/repositories/freeeUserRepository';
 import { RedisClientType } from 'redis';
 
 
@@ -237,6 +237,7 @@ describe('IFreeeService', () => {
     let mockedFreeeAuthenticationService: jest.Mocked<IFreeeAuthenticationService>;
     let mockedFreeeHrHttpApiClient: jest.Mocked<IFreeeHrHttpApiClient>;
     let mockedFreeeUserRepository: jest.Mocked<IFreeeUserRepository>;
+    let mockedRedisClient: jest.Mocked<RedisClientType>;
 
     beforeEach(() => {
         mockedFreeeAuthenticationService = {
@@ -256,6 +257,7 @@ describe('IFreeeService', () => {
             save: jest.fn(),
             get: jest.fn(),
         };
+        mockedRedisClient = redis.createClient() as jest.Mocked<RedisClientType>;
     });
 
     describe('getAuthorizeUrl', () => {
@@ -265,7 +267,6 @@ describe('IFreeeService', () => {
 
         it(`should return the correct authorization URL with necessary query parameters`, () => {
             // Arrange
-            const mockedRedisClient = redis.createClient() as RedisClientType;
             const freeeService: IFreeeService =
                 new FreeeService(mockedFreeeAuthenticationService, mockedFreeeHrHttpApiClient, mockedFreeeUserRepository, mockedRedisClient);
             mockedFreeeAuthenticationService.getAuthorizationUrl = jest.fn((callbackUrl: string) => {
@@ -282,7 +283,6 @@ describe('IFreeeService', () => {
 
         it('should propagate the exception to the caller in case of an error', async () => {
             // Arrange
-            const mockedRedisClient = redis.createClient() as RedisClientType;
             const freeeService: IFreeeService =
                 new FreeeService(mockedFreeeAuthenticationService, mockedFreeeHrHttpApiClient, mockedFreeeUserRepository, mockedRedisClient);
             mockedFreeeAuthenticationService.getAuthorizationUrl.mockImplementation(() => {
@@ -293,6 +293,113 @@ describe('IFreeeService', () => {
             expect(() => {
                 freeeService.getAuthorizeUrl('https://callback.com/authorize/callback')
             }).toThrow('Network Error');
+        });
+    })
+
+    describe('handleAuthCallback', () => {
+        beforeEach(() => {
+            mockedFreeeAuthenticationService.getAccessToken.mockClear();
+            mockedFreeeHrHttpApiClient.get.mockClear();
+            jest.spyOn(Date, 'now').mockImplementation(() => new Date('2024-01-01T00:00:00.000Z').getTime());
+        });
+
+        it(`Tokenが保存され株式会社フロンティア・フィールドのMe情報が取得されるべき`, async () => {
+            // Arrange
+            const mockFreeeOAuthTokenResponse = {
+                access_token: 'test-access-token',
+                id_token: 'test-id-token',
+                refresh_token: 'test-refresh-token',
+                expires_in: 3600,
+                token_type: 'Bearer',
+                scope: 'test-scope',
+                created_at: 1234,
+                company_id: 5678
+            };
+            mockedFreeeAuthenticationService.getAccessToken.mockResolvedValueOnce(mockFreeeOAuthTokenResponse);
+
+            const meResponse = {
+                id: 1,
+                companies: [
+                    {
+                        id: 103,
+                        name: "株式会社フロンティア・フィールド",
+                        role: 'self_only',
+                        external_cid: 3456789012,
+                        employee_id: 3001,
+                        display_name: "鈴木一郎"
+                    }
+                ]
+            };
+            mockedFreeeHrHttpApiClient.get.mockResolvedValueOnce(meResponse);
+
+            let actual_userId: string | null = null;
+            let actual_user: User | null = null;
+            mockedFreeeUserRepository.save.mockImplementation((userId, user) => {
+                actual_userId = userId;
+                actual_user = user;
+                return Promise.resolve();
+            })
+
+            const freeeService: IFreeeService =
+                new FreeeService(mockedFreeeAuthenticationService, mockedFreeeHrHttpApiClient, mockedFreeeUserRepository, mockedRedisClient);
+
+            const redirectUri = 'https://callback.com/authorize/callback';
+            const userId = 'test-123456';
+            const authCode = 'test-auth-code';
+            // Act
+            const actual = await freeeService.handleAuthCallback(userId, authCode, redirectUri);
+
+            // Assert
+            expect(actual).toEqual({
+                employee_id: 3001,
+                employee_name: "鈴木一郎",
+                company_id: 103,
+                company_name: "株式会社フロンティア・フィールド",
+                external_cid: 3456789012,
+                role: 'self_only',
+                updated_at: new Date('2024-01-01T00:00:00.000Z')
+            });
+
+            // 保存データが正しいことを検証する
+            expect(actual_userId).toBe('test-123456');
+            expect(actual_user).toEqual({
+                id: 1,
+                companies: [
+                    {
+                        id: 103,
+                        name: "株式会社フロンティア・フィールド",
+                        role: 'self_only',
+                        external_cid: 3456789012,
+                        employee_id: 3001,
+                        display_name: "鈴木一郎"
+                    }
+                ],
+                oauth: {
+                    access_token: 'test-access-token',
+                    id_token: 'test-id-token',
+                    refresh_token: 'test-refresh-token',
+                    expires_in: 3600,
+                    token_type: 'Bearer',
+                    scope: 'test-scope',
+                    created_at: 1234,
+                    company_id: 5678
+                },
+                updated_at: (new Date('2024-01-01T00:00:00.000Z')).getTime()
+            });
+        });
+
+        it('should propagate the exception to the caller in case of an error', async () => {
+            // Arrange
+            mockedFreeeAuthenticationService.getAccessToken.mockImplementation(() => {
+                throw new Error('Network Error');
+            });
+            const freeeService: IFreeeService =
+                new FreeeService(mockedFreeeAuthenticationService, mockedFreeeHrHttpApiClient, mockedFreeeUserRepository, mockedRedisClient);
+
+            // Act & Assert
+            await expect(freeeService.handleAuthCallback('test-123456', 'test-auth-code', 'https://callback.com/authorize/callback'))
+                .rejects
+                .toThrow('Network Error');
         });
     })
 })
