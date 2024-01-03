@@ -115,7 +115,7 @@ export class FreeeService implements IFreeeService {
             , accessToken);
 
         const mappedWorkRecords: WorkRecord[] = response.work_records
-            .filter(workRecord => workRecord.clock_in_at !== null && workRecord.clock_out_at !== null)
+            .filter(workRecord => workRecord.clock_in_at && workRecord.clock_out_at)
             .map((workRecord) => ({
                 workDay: DateOnly.fromDateString(workRecord.date),
                 breakRecords: workRecord.break_records.map((breakRecord) => ({
@@ -161,7 +161,7 @@ export class FreeeService implements IFreeeService {
             , accessToken);
     }
 
-    private getInternalMe(user: UserModel): Employee {
+    protected getInternalMe(user: UserModel): Employee {
         if (!user || !user.companies) {
             return {
                 employee_id: 0,
@@ -237,7 +237,6 @@ export class FreeeService implements IFreeeService {
 
         return freeeUser.oauth.access_token;
     }
-
 
     private isTokenExpired(userOAuth: FreeeOAuthTokenResponse): boolean {
         const BUFFER_TIME = 30; // 30 seconds buffer
