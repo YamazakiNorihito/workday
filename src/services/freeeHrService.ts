@@ -114,6 +114,10 @@ export class FreeeService implements IFreeeService {
             `/api/v1/employees/${me.employee_id}/work_record_summaries/${year}/${month}?company_id=${me.company_id}&work_records=true`
             , accessToken);
 
+        if (!response) {
+            return [];
+        }
+
         const mappedWorkRecords: WorkRecord[] = response.work_records
             .filter(workRecord => workRecord.clock_in_at && workRecord.clock_out_at)
             .map((workRecord) => ({

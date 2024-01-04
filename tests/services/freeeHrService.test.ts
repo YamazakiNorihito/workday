@@ -559,6 +559,106 @@ describe('IFreeeService', () => {
             jest.spyOn(Date, 'now').mockImplementation(() => new Date('2024-01-01T00:00:00.000Z').getTime());
         });
 
+        it(`should verify that the API call is made correctly`, async () => {
+            // Arrange
+            mockedFreeeHrHttpApiClient.get.mockResolvedValue({
+                year: 2024,
+                month: 1,
+                start_date: "2024-01-01",
+                end_date: "2024-01-31",
+                work_days: 20,
+                total_work_mins: 9600,
+                total_normal_work_mins: 8000,
+                total_excess_statutory_work_mins: 400,
+                total_overtime_except_normal_work_mins: 200,
+                total_overtime_within_normal_work_mins: 100,
+                total_holiday_work_mins: 300,
+                total_latenight_work_mins: 50,
+                num_absences: 1,
+                num_paid_holidays: 2,
+                num_paid_holidays_and_hours: {
+                    days: 2,
+                    hours: 16
+                },
+                num_paid_holidays_left: 10,
+                num_paid_holidays_and_hours_left: {
+                    days: 10,
+                    hours: 80
+                },
+                num_substitute_holidays_used: 1,
+                num_compensatory_holidays_used: 1,
+                num_special_holidays_used: 1,
+                num_special_holidays_and_hours_used: {
+                    days: 1,
+                    hours: 8
+                },
+                total_lateness_and_early_leaving_mins: 30,
+                multi_hourly_wages: [],
+                work_records: [
+                    {
+                        "break_records": [
+                            {
+                                "clock_in_at": "2024-01-10T12:00:00",
+                                "clock_out_at": "2024-01-10T13:00:00"
+                            }
+                        ],
+                        "clock_in_at": "2024-01-10T09:00:00",
+                        "clock_out_at": "2024-01-10T17:00:00",
+                        "date": "2024-01-10",
+                        "day_pattern": "normal_day",
+                        "early_leaving_mins": 0,
+                        "hourly_paid_holiday_mins": 0,
+                        "is_absence": false,
+                        "is_editable": true,
+                        "lateness_mins": 0,
+                        "normal_work_clock_in_at": "2024-01-10T09:00:00",
+                        "normal_work_clock_out_at": "2024-01-10T17:00:00",
+                        "normal_work_mins": 480,
+                        "normal_work_mins_by_paid_holiday": 0,
+                        "note": "Standard workday.",
+                        "paid_holiday": 0,
+                        "use_attendance_deduction": false,
+                        "use_default_work_pattern": true,
+                        "total_overtime_work_mins": 0,
+                        "total_holiday_work_mins": 0,
+                        "total_latenight_work_mins": 0,
+                        "not_auto_calc_work_time": false,
+                        "total_excess_statutory_work_mins": 0,
+                        "total_latenight_excess_statutory_work_mins": 0,
+                        "total_overtime_except_normal_work_mins": 0,
+                        "total_latenight_overtime_except_normal_work_min": 0
+                    }
+                ],
+                total_shortage_work_mins: 0,
+                total_deemed_paid_excess_statutory_work_mins: 0,
+                total_deemed_paid_overtime_except_normal_work_mins: 0
+            });
+
+            const freeeService: IFreeeService =
+                new TestFreeeService(mockedFreeeAuthenticationService, mockedFreeeHrHttpApiClient, mockedFreeeUserRepository, mockedRedisClient);
+
+            const userId = 'test-123456';
+            // Act
+            const actual = await freeeService.getWorkRecords(userId, 2023, 12);
+
+            // Assert
+            expect(mockedFreeeHrHttpApiClient.get).toHaveBeenCalledWith(
+                `/api/v1/employees/3001/work_record_summaries/2023/12?company_id=103&work_records=true`,
+                "test-token"
+            );
+            expect(actual).toEqual([
+                {
+                    workDay: new DateOnly(2024, 1, 10),
+                    breakRecords: [{
+                        clockInAt: new TimeOnly(12, 0, 0),
+                        clockOutAt: new TimeOnly(13, 0, 0)
+                    }],
+                    clockInAt: new TimeOnly(9, 0, 0),
+                    clockOutAt: new TimeOnly(17, 0, 0),
+                }
+            ]);
+        });
+
         it(`should correctly retrieve workdays`, async () => {
             // Arrange
             mockedFreeeHrHttpApiClient.get.mockResolvedValue({
