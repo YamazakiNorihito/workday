@@ -208,5 +208,15 @@ export const categoryFeeds: ICategoryFeeds = {
         url: 'https://ufcpp.net/rss',
         lang: 'ja-jp',
         label: '++C++; // 未確認飛行 C'
+    },
+    ipaSecurity: {
+        url: 'https://www.ipa.go.jp/security/alert-rss.rdf',
+        lang: 'ja-jp',
+        label: '重要なセキュリティ情報  IPA'
+    },
+    jpcert: {
+        url: 'https://www.jpcert.or.jp/rss/jpcert-all.rdf',
+        lang: 'ja-jp',
+        label: '重要なセキュリティ情報  JPCERT'
     }
 };
