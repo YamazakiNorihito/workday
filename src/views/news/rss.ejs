@@ -25,9 +25,12 @@
                             <% if (item.categories && item.categories.length> 0) { %><span><i class="fi-comments">
                                         Categories: <%= item.categories.join(', ') %></i></span><% } %>
                       </p>
-                      <p><% const view_length=74 * 3; %>
+                      <p>
+                        <% if (item?.contentSnippet && item?.contentSnippet.length> 0) { %>
+                        <% const view_length=74 * 3; %>
                         <%= item.contentSnippet.slice(0, view_length) %>
-                            <%= item.contentSnippet.length> view_length ? ' ...' : '' %>
+                        <%= item.contentSnippet.length> view_length ? ' ...' : '' %>
+                                            <% } %>
                         </p>
                     </div>
                 </div>
