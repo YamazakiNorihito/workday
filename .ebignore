@@ -1,5 +1,0 @@
-# .ebignore ですべてを無視
-*
-
-# docker-compose.yaml のみを含める
-!docker-compose.yaml
