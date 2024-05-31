@@ -119,3 +119,69 @@ docker pull node:18 --platform=linux/amd64
 docker pull redis/redis-stack-server:7.2.0-v4  --platform=linux/amd64
 
 ```
+
+TypeScriptの入門にはいいかも
+  - https://typescriptbook.jp/
+
+
+### jest
+https://jestjs.io/ja/docs/getting-started
+
+```bash
+
+npm install -D 'jest@^28.0.0' 'ts-jest@^28.0.0' '@types/jest@^28.0.0'
+
+npx ts-jest config:init
+
+```
+
+TypeScriptの入門にはいいかも
+  - https://typescriptbook.jp/
+
+
+### jest
+https://jestjs.io/ja/docs/getting-started
+
+```bash
+
+npm install -D 'jest@^28.0.0' 'ts-jest@^28.0.0' '@types/jest@^28.0.0'
+
+npx ts-jest config:init
+
+```
+
+TypeScriptの入門にはいいかも
+  - https://typescriptbook.jp/
+
+### code pipeline
+
+```bash
+# パイプラインのメタデータ、構造、ステージ、およびアクションを返します。パイプラインの構造全体を JSON 形式で返すために使用でき、これを変更して UpdatePipeline でパイプライン構造を更新するために使用できます。
+# https://docs.aws.amazon.com/cli/latest/reference/codepipeline/get-pipeline.html
+aws codepipeline get-pipeline --name workday-pipeline
+```
+
+
+### jest
+https://jestjs.io/ja/docs/getting-started
+https://blog.logrocket.com/organizing-express-js-project-structure-better-productivity/
+https://blog.logrocket.com/node-js-project-architecture-best-practices/#best-practices-node-js-project-structure
+
+
+```bash
+
+npm install -D 'jest@^28.0.0' 'ts-jest@^28.0.0' '@types/jest@^28.0.0'
+
+npx ts-jest config:init
+
+```
+
+package.json のTestで、 TimeZoneとロケールが日本を前提にUTが作成されているため、
+Testの時だけ、 TimeZoneとロケールが日本にしている。
+
+```json
+  "scripts": {
+    "start:dev": "NODE_ENV=development nodemon ./src/app.ts",
+    "test": "TZ=Asia/Tokyo LC_ALL=ja_JP.UTF-8 jest",
+    },
+```

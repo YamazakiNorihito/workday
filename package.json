@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node dist/app.js",
     "start:dev": "NODE_ENV=development nodemon ./src/app.ts",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "TZ=Asia/Tokyo LC_ALL=ja_JP.UTF-8 jest",
     "build": "tsc && cp -r src/views dist/views"
   },
   "keywords": [],
@@ -35,8 +35,6 @@
     "redis": "^4.6.11",
     "reflect-metadata": "^0.1.13",
     "rss-parser": "^3.13.0",
-    "sequelize": "^6.33.0",
-    "sqlite3": "^5.1.6",
     "ts-node": "^10.9.1",
     "tsyringe": "^4.8.0",
     "typescript": "^5.2.2"
