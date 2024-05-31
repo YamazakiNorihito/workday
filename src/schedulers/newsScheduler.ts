@@ -1,7 +1,7 @@
 import { CronJob } from 'cron';
 import { inject, singleton } from 'tsyringe';
-import { RSSFeedService } from '../services/rssFeedService';
-import { PostMessageService } from '../services/postMessageService';
+import { IRSSFeedService, RSSFeedService } from '../services/rssFeedService';
+import { IPostMessageService, PostMessageService } from '../services/postMessageService';
 import { RSSFeed } from '../repositories/rssFeedRepository';
 
 @singleton()
@@ -9,8 +9,8 @@ export class NewsScheduler {
     private fetchJob: CronJob;
     private notificationJob: CronJob;
 
-    constructor(@inject(RSSFeedService) private readonly _rssFeedService: RSSFeedService,
-        @inject(PostMessageService) private readonly _postMessageService: PostMessageService) {
+    constructor(@inject(RSSFeedService) private readonly _rssFeedService: IRSSFeedService,
+        @inject(PostMessageService) private readonly _postMessageService: IPostMessageService) {
         this.fetchJob = new CronJob(
             '*/20 * * * *',
             () => {
@@ -208,5 +208,15 @@ export const categoryFeeds: ICategoryFeeds = {
         url: 'https://ufcpp.net/rss',
         lang: 'ja-jp',
         label: '++C++; // 未確認飛行 C'
+    },
+    ipaSecurity: {
+        url: 'https://www.ipa.go.jp/security/alert-rss.rdf',
+        lang: 'ja-jp',
+        label: '重要なセキュリティ情報  IPA'
+    },
+    jpcert: {
+        url: 'https://www.jpcert.or.jp/rss/jpcert-all.rdf',
+        lang: 'ja-jp',
+        label: '重要なセキュリティ情報  JPCERT'
     }
 };

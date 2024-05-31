@@ -6,34 +6,31 @@
 # FROM node:18 as builder
 FROM public.ecr.aws/l0m5q1g1/nybeyond/node-18:latest as builder
 
-# アプリケーションディレクトリを作成
 WORKDIR /app
 
-# package.json と package-lock.json をコピー
 COPY package*.json ./
 
-# 依存関係のインストール
 RUN npm install
 
-# ソースコードのコピー
 COPY src/ src/
+COPY tests/ tests/
 COPY tsconfig.json .
+COPY jest.config.js .
 
-# TypeScriptのコンパイル
 RUN npm run build
+
+# テストステップの追加
+RUN npm test
 
 # 実行ステージ
 #FROM node:18-slim
 FROM public.ecr.aws/l0m5q1g1/nybeyond/node-18:slim
 
-# アプリケーションディレクトリを作成
 WORKDIR /app
 
-# ビルドステージからコンパイルされたファイルと node_modules をコピー
 COPY --from=builder /app/dist /app/dist
 COPY --from=builder /app/node_modules /app/node_modules
 
 EXPOSE 3000
 
-# アプリケーションの起動
 CMD ["node", "dist/app.js"]

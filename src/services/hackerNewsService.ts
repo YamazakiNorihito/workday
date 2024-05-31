@@ -1,14 +1,24 @@
 import axios, { AxiosInstance } from "axios";
 import { inject, singleton } from "tsyringe";
-import { Semaphore } from "../system/semaphore";
-import { BaseHackerNewsItem, HackerNewsItem, HackerNewsRepository } from "../repositories/hackerNewsRepository";
+import { BaseHackerNewsItem, HackerNewsItem, HackerNewsRepository, IHackerNewsRepository } from "../repositories/hackerNewsRepository";
+
+export interface IHackerNewsService {
+    getTopStories(): Promise<BaseHackerNewsItem[]>;
+    getNewStories(): Promise<BaseHackerNewsItem[]>;
+    getBestStories(): Promise<BaseHackerNewsItem[]>;
+    getAskHNStories(): Promise<BaseHackerNewsItem[]>;
+    getShowHNStories(): Promise<BaseHackerNewsItem[]>;
+    getJobStories(): Promise<BaseHackerNewsItem[]>;
+    getMaxItem(): Promise<number>;
+    getItem(itemId: number): Promise<HackerNewsItem>;
+}
 
 @singleton()
-export class HackerNewsService {
-    private hackerNewsHttpClient: AxiosInstance;
+export class HackerNewsService implements IHackerNewsService {
+    protected hackerNewsHttpClient: AxiosInstance;
 
     constructor(
-        @inject(HackerNewsRepository) private readonly _hackerNewsRepository: HackerNewsRepository) {
+        @inject(HackerNewsRepository) protected readonly _hackerNewsRepository: IHackerNewsRepository) {
         this.hackerNewsHttpClient = axios.create({
             baseURL: 'https://hacker-news.firebaseio.com/v0'
         });
@@ -37,15 +47,17 @@ export class HackerNewsService {
         return this.getStories('/jobstories.json');
     }
 
-
     public async getMaxItem(): Promise<number> {
         const response = await this.hackerNewsHttpClient.get('/maxitem.json');
         return response.data;
     }
 
     public async getItem(itemId: number): Promise<HackerNewsItem> {
-        const response = await this.hackerNewsHttpClient.get<HackerNewsItem>(`/item/${itemId}.json`);
-        return response.data;
+        const item = await this._hackerNewsRepository.get(itemId);
+        if (item) {
+            return item;
+        }
+        return this.getAndSave(itemId);
     }
 
     private async getStories(endpoint: string): Promise<BaseHackerNewsItem[]> {
@@ -56,9 +68,7 @@ export class HackerNewsService {
         const missingItemIds = itemIds.filter((id, index) => !items[index]);
         await Promise.all(missingItemIds.map(async itemId => {
             try {
-                const fetchNews = await this.getItem(itemId);
-                await this._hackerNewsRepository.save(fetchNews.id, fetchNews);
-                return fetchNews;
+                return await this.getAndSave(itemId);
             } catch (error) {
                 console.error(`Error fetching item ${itemId}:`, error);
                 return null;
@@ -69,6 +79,13 @@ export class HackerNewsService {
             });
         });
 
-        return items.filter(item => item && item.type === 'story') as HackerNewsItem[];
+        return items as HackerNewsItem[];
+    }
+
+    protected async getAndSave(itemId: number): Promise<HackerNewsItem> {
+        const response = await this.hackerNewsHttpClient.get<HackerNewsItem>(`/item/${itemId}.json`);
+        const fetchNews = response.data;
+        await this._hackerNewsRepository.save(fetchNews.id, fetchNews);
+        return fetchNews;
     }
 }

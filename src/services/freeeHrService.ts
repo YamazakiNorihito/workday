@@ -1,6 +1,6 @@
 import { inject, singleton } from "tsyringe";
-import { FreeeHrHttpApiClient } from "../httpClients/freeeHttpClient";
-import { FreeeUserRepository, OAuth, User as UserModel } from '../repositories/freeeUserRepository';
+import { FreeeHrHttpApiClient, IFreeeHrHttpApiClient } from "../httpClients/freeeHttpClient";
+import { FreeeUserRepository, IFreeeUserRepository, OAuth, User as UserModel } from '../repositories/freeeUserRepository';
 import { WorkRecord } from '../types/workRecord';
 import { RedisClientType } from "redis";
 import { DateOnly } from "../types/dateOnly";
@@ -15,6 +15,15 @@ export interface FreeeOAuthTokenResponse extends OAuthTokenResponse {
 }
 
 export interface IFreeeAuthenticationService extends IOAuth2Service<FreeeOAuthTokenResponse> { }
+
+export interface IFreeeService {
+    getAuthorizeUrl(redirectUri: string): string;
+    handleAuthCallback(userId: string, authCode: string, redirectUri: string): Promise<Employee>;
+    getWorkRecords(userId: string, year: number, month: number): Promise<WorkRecord[]>;
+    getMe(userId: string): Promise<Employee>;
+    updateWorkRecord(userId: string, workRecord: WorkRecord): Promise<void>;
+    deleteWorkRecord(userId: string, workDay: DateOnly): Promise<void>;
+}
 
 @singleton()
 export class FreeeAuthenticationService implements IFreeeAuthenticationService {
@@ -72,11 +81,11 @@ export class FreeeAuthenticationService implements IFreeeAuthenticationService {
 }
 
 @singleton()
-export class FreeeService {
+export class FreeeService implements IFreeeService {
     constructor(
         @inject("IFreeeAuthenticationService") private freeeAuthenticationService: IFreeeAuthenticationService,
-        @inject(FreeeHrHttpApiClient) private freeeHrHttpApiClient: FreeeHrHttpApiClient,
-        @inject(FreeeUserRepository) private readonly freeeUserRepository: FreeeUserRepository,
+        @inject(FreeeHrHttpApiClient) private freeeHrHttpApiClient: IFreeeHrHttpApiClient,
+        @inject(FreeeUserRepository) private readonly freeeUserRepository: IFreeeUserRepository,
         @inject("RedisClient") private readonly redisClient: RedisClientType
     ) { }
 
@@ -89,8 +98,8 @@ export class FreeeService {
         const meResponse = await this.freeeHrHttpApiClient.get<User>('/api/v1/users/me', oauthResponse.access_token);
 
         const freeeUser: UserModel = {
-            id: meResponse.id,
-            companies: meResponse.companies,
+            id: meResponse?.id,
+            companies: meResponse?.companies,
             oauth: oauthResponse,
             updated_at: Date.now(),
         };
@@ -105,8 +114,12 @@ export class FreeeService {
             `/api/v1/employees/${me.employee_id}/work_record_summaries/${year}/${month}?company_id=${me.company_id}&work_records=true`
             , accessToken);
 
+        if (!response) {
+            return [];
+        }
+
         const mappedWorkRecords: WorkRecord[] = response.work_records
-            .filter(workRecord => workRecord.clock_in_at !== null && workRecord.clock_out_at !== null)
+            .filter(workRecord => workRecord.clock_in_at && workRecord.clock_out_at)
             .map((workRecord) => ({
                 workDay: DateOnly.fromDateString(workRecord.date),
                 breakRecords: workRecord.break_records.map((breakRecord) => ({
@@ -152,8 +165,8 @@ export class FreeeService {
             , accessToken);
     }
 
-    private getInternalMe(user: UserModel): Employee {
-        if (!user) {
+    protected getInternalMe(user: UserModel): Employee {
+        if (!user || !user.companies) {
             return {
                 employee_id: 0,
                 employee_name: "",
@@ -228,7 +241,6 @@ export class FreeeService {
 
         return freeeUser.oauth.access_token;
     }
-
 
     private isTokenExpired(userOAuth: FreeeOAuthTokenResponse): boolean {
         const BUFFER_TIME = 30; // 30 seconds buffer

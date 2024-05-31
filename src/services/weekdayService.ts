@@ -1,8 +1,12 @@
 import axios, { AxiosInstance } from "axios";
 import { singleton } from "tsyringe";
 
+export interface IWeekdayService {
+    getWorkDays(from: Date, to: Date): Promise<Date[]>;
+}
+
 @singleton()
-export class WeekdayService {
+export class WeekdayService implements IWeekdayService {
     private holidaysClient: AxiosInstance;
 
     constructor() {
