@@ -66,7 +66,7 @@ export class RSSFeedService implements IRSSFeedService {
         const rssFeedItems: RSSFeedItem[] = feed.items.map(item => ({
             title: item.title,
             link: item.link,
-            pubDate: item.pubDate ? new Date(item.pubDate) : undefined,
+            pubDate: item.pubDate || item['dc:date'],
             contentSnippet: item.contentSnippet,
             categories: item.categories
         }));
