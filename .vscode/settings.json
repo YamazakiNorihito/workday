@@ -1,0 +1,16 @@
+{
+    "go.formatTool": "goimports",
+    "go.lintTool": "golangci-lint",
+    "go.lintFlags": ["--fast"],
+    "editor.formatOnSave": true,
+    "[go]": {
+      "editor.defaultFormatter": "golang.go"
+    },
+    "cSpell.words": [
+      "attributevalue",
+      "dynamodbattribute",
+      "dynamodbav",
+      "medcom",
+      "partitionkey"
+    ]
+  }
