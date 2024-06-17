@@ -1,0 +1,45 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Parameters:
+  TemplateBucket:
+    Type: String
+    Description: "The S3 bucket where the templates are stored"
+
+Resources:
+  DynamoDBStack:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/dynamodb/template.yaml"
+
+  S3Stack:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/s3/template.yaml"
+
+  SNSStack:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/sns/template.yaml"
+      Parameters:
+        TemplateBucket: !Ref TemplateBucket
+
+  IAMStack:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/iam/template.yaml"
+      Parameters:
+        TemplateBucket: !Ref TemplateBucket
+    DependsOn: 
+      - S3Stack
+      - DynamoDBStack
+      - SNSStack
+
+  ApplicationStack:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/application/template.yaml"
+      Parameters:
+        TemplateBucket: !Ref TemplateBucket
+    DependsOn:
+      - IAMStack
+      - DynamoDBStack
+      - SNSStack

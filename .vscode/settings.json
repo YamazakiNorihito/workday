@@ -10,7 +10,15 @@
       "attributevalue",
       "dynamodbattribute",
       "dynamodbav",
+      "dynamodbstreams",
+      "gofeed",
+      "localdebug",
       "medcom",
-      "partitionkey"
+      "mmcdole",
+      "myhost",
+      "nybeyond",
+      "partitionkey",
+      "stretchr",
+      "YamazakiNorihito"
     ]
   }

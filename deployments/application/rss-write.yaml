@@ -1,0 +1,41 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+  LambdaRoleArn:
+    Type: String
+  TopicArm:
+    Type: String
+Resources:
+  FunctionStack:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: "RssWriteFunction"
+      Runtime: provided.al2023
+      Architectures:
+        - x86_64
+      Handler: bootstrap
+      Role: !Ref LambdaRoleArn
+      Timeout: 10
+      PackageType: Zip
+      Code:
+        S3Bucket: "nybeyond-com-deploy"
+        S3Key: "binaries/rss/lambda/event/write/function.zip"
+      LoggingConfig:
+        LogGroup: !Ref LambdaLogGroup
+  LambdaLogGroup:
+    Type: 'AWS::Logs::LogGroup'
+    Properties:
+      LogGroupName: "/aws/lambda/RssWriteFunction"
+      RetentionInDays: 1
+  SubscriptionStack:
+    Type: "AWS::SNS::Subscription"
+    Properties:
+      TopicArn: !Ref TopicArm
+      Protocol: "lambda"
+      Endpoint: !GetAtt FunctionStack.Arn
+  LambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt FunctionStack.Arn
+      Principal: sns.amazonaws.com
+      SourceArn: !Ref TopicArm

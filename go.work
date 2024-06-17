@@ -1,0 +1,9 @@
+go 1.22.2
+
+use (
+	.
+	./cmd/rss/lambda/event/write
+	./cmd/rss/lambda/event/subscribe
+	./cmd/rss/lambda/event/trigger
+	./cmd/rss/lambda/event/notification
+)

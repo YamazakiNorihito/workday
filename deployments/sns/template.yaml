@@ -1,0 +1,13 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Parameters:
+  TemplateBucket:
+    Type: String
+Resources:
+  TopicSubscribeStack:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/sns/topic-rss-subscribe.yaml"
+  TopicWriteStack:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/sns/topic-rss-write.yaml"

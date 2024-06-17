@@ -1,0 +1,33 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Resources:
+  Rss:
+    Type: "AWS::DynamoDB::Table"
+    Properties:
+      TableName: !Sub "Rss"
+      AttributeDefinitions:
+        - AttributeName: "id"
+          AttributeType: "S"
+        - AttributeName: "sortKey"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "id"
+          KeyType: "HASH"
+        - AttributeName: "sortKey"
+          KeyType: "RANGE"
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+      StreamSpecification:
+        StreamViewType: 'NEW_IMAGE'
+      SSESpecification:
+        SSEEnabled: false
+      TableClass: 'STANDARD'
+Outputs:
+  Arn:
+    Value: !GetAtt 'Rss.Arn'
+    Export:
+      Name: "RssTableArn"
+  StreamArn:
+    Value: !GetAtt 'Rss.StreamArn'
+    Export:
+      Name: "RssStreamArn"

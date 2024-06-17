@@ -1,0 +1,13 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Parameters:
+  TemplateBucket:
+    Type: String
+Resources:
+  LambdaRoleStack:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/iam/role-lambda.yaml"
+  SchedulerRoleStack:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/iam/role-scheduler.yaml"

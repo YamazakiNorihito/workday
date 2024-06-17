@@ -1,0 +1,46 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+  LambdaRoleArn:
+    Type: String
+  SchedulerRoleArn:
+    Type: String
+  RssSubscribeArn:
+    Type: String
+Resources:
+  FunctionStack:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: "RssTriggerFunction"
+      Runtime: provided.al2023
+      Architectures:
+        - x86_64
+      Handler: bootstrap
+      Role: !Ref LambdaRoleArn
+      Timeout: 10
+      PackageType: Zip
+      Code:
+        S3Bucket: "nybeyond-com-deploy"
+        S3Key: "binaries/rss/lambda/event/trigger/function.zip"
+      LoggingConfig:
+        LogGroup: !Ref LambdaLogGroup
+      Environment:
+        Variables:
+          RSS_SUBSCRIBE_ARN: !Ref RssSubscribeArn
+  LambdaLogGroup:
+    Type: 'AWS::Logs::LogGroup'
+    Properties:
+      LogGroupName: "/aws/lambda/RssTriggerFunction"
+      RetentionInDays: 1
+  Schedule:
+    Type: "AWS::Scheduler::Schedule"
+    Properties:
+      Name: "RssTriggerSchedule"
+      Target:
+        Arn: !GetAtt FunctionStack.Arn
+        RoleArn: !Ref SchedulerRoleArn
+      ScheduleExpression: "cron(*/30 * * * ? *)"
+      ScheduleExpressionTimezone: "UTC"
+      FlexibleTimeWindow:
+        MaximumWindowInMinutes: 8
+        Mode: FLEXIBLE
+      State: ENABLED
