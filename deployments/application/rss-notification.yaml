@@ -1,0 +1,42 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+  LambdaRoleArn:
+    Type: String
+  DynamoDBStreamArn:
+    Type: String
+Resources:
+  FunctionStack:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: "RssNotificationFunction"
+      Runtime: provided.al2023
+      Architectures:
+        - x86_64
+      Handler: bootstrap
+      Role: !Ref LambdaRoleArn
+      Timeout: 10
+      PackageType: Zip
+      Code:
+        S3Bucket: "nybeyond-com-deploy"
+        S3Key: "binaries/rss/lambda/event/notification/function.zip"
+      LoggingConfig:
+        LogGroup: !Ref LambdaLogGroup
+      Environment:
+        Variables:
+          # https://api.slack.com/apps/A0679N6M864/install-on-team?
+          # Installed App Settingsから撮ってて設定して
+          SLACK_TOKEN: ""
+          SLACK_CHANNEL_ID: "#色々通知"
+  LambdaLogGroup:
+    Type: 'AWS::Logs::LogGroup'
+    Properties:
+      LogGroupName: "/aws/lambda/RssNotificationFunction"
+      RetentionInDays: 1
+  EventSourceDDBTableStream:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      FunctionName: !Ref FunctionStack
+      EventSourceArn: !Ref DynamoDBStreamArn
+      BatchSize: 1
+      Enabled: True
+      StartingPosition: LATEST

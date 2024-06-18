@@ -1,0 +1,35 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Parameters:
+  TemplateBucket:
+    Type: String
+Resources:
+  LambdaRssNotificationStack:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/application/rss-notification.yaml"
+      Parameters:
+        LambdaRoleArn: !ImportValue LambdaRoleArn
+        DynamoDBStreamArn: !ImportValue RssStreamArn
+  LambdaRssSubscribeStack:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/application/rss-subscribe.yaml"
+      Parameters:
+        LambdaRoleArn: !ImportValue LambdaRoleArn
+        TopicArm: !ImportValue RssSubscribeTopicArn
+        RssWriteTopicArn: !ImportValue RssWriteTopicArn
+  LambdaRssTriggerStack:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/application/rss-trigger.yaml"
+      Parameters:
+        LambdaRoleArn: !ImportValue LambdaRoleArn
+        SchedulerRoleArn: !ImportValue SchedulerRoleArn
+        RssSubscribeArn: !ImportValue RssSubscribeTopicArn
+  LambdaRssWriteStack:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/application/rss-write.yaml"
+      Parameters:
+        LambdaRoleArn: !ImportValue LambdaRoleArn
+        TopicArm: !ImportValue RssWriteTopicArn

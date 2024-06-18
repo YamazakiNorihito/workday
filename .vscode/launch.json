@@ -5,18 +5,16 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "node",
+            "name": "Launch Package",
+            "type": "go",
             "request": "launch",
-            "name": "Start Server",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
-            "program": "${workspaceFolder}/src/app.ts",
-            "preLaunchTask": "tsc: build - tsconfig.json",
-            "outFiles": [
-                "${workspaceFolder}/dist/**/*.js"
-            ],
-            "sourceMaps": true // ソースマップを有効に
+            "mode": "auto",
+            "program": "${fileDirname}",
+            "env": {
+                "ENV" : "myhost",
+                "SNS_ENDPOINT": "http://localhost:4566",
+                "RSS_WRITE_ARN": "arn:aws:sns:us-east-1:000000000000:rss-write"
+            }
         }
     ]
 }

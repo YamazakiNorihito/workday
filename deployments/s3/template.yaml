@@ -1,0 +1,29 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Resources:
+  WorkDayBucket:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName: "nybeyond-com-workday"
+
+  WorkDayBucketPolicy:
+    Type: "AWS::S3::BucketPolicy"
+    Properties:
+      Bucket: !Ref WorkDayBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service: "cloudformation.amazonaws.com"
+            Action: "s3:GetObject"
+            Resource: "arn:aws:s3:::nybeyond-com-workday/*"
+
+Outputs:
+  WorkDayS3Bucket:
+    Value: !Ref WorkDayBucket
+    Export:
+      Name: "WorkDayS3Bucket"
+  WorkDayS3BucketArn:
+    Value: !GetAtt WorkDayBucket.Arn
+    Export:
+      Name: "WorkDayS3BucketArn"
