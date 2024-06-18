@@ -33,7 +33,7 @@ func handler(ctx context.Context, event events.EventBridgeEvent) error {
 }
 
 func Core(ctx context.Context, logger infrastructure.Logger, rssWritePublisher shared.Publisher) error {
-	feedURLs := [10]string{
+	feedURLs := [12]string{
 		"https://azure.microsoft.com/ja-jp/blog/feed/",
 		"https://aws.amazon.com/jp/blogs/news/feed/",
 		"https://developers-jp.googleblog.com/atom.xml",
@@ -43,6 +43,9 @@ func Core(ctx context.Context, logger infrastructure.Logger, rssWritePublisher s
 		"https://www.oreilly.co.jp/catalog/soon.xml",
 		"https://go.dev/blog/feed.atom",
 		"https://connpass.com/explore/ja.atom",
+		"https://www.ipa.go.jp/security/alert-rss.rdf",
+		"https://feed.infoq.com",
+		"https://techcrunch.com/feed",
 	}
 
 	for _, feedURL := range feedURLs {

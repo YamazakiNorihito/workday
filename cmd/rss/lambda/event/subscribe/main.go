@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/url"
 	"os"
+	"time"
 
 	"github.com/YamazakiNorihito/workday/cmd/rss/lambda/event/shared"
 	awsConfig "github.com/YamazakiNorihito/workday/cmd/rss/lambda/event/shared/aws_config"
@@ -78,7 +79,8 @@ func Core(ctx context.Context, logger infrastructure.Logger, repository rss.IRss
 		feedLink = feed.FeedLink
 	}
 
-	rssEntry, err = rss.New(feed.Title, source, feedLink, feed.Description, feed.Language, feed.UpdatedParsed.UTC())
+	lastBuildDate := getLastBuildDate(*feed)
+	rssEntry, err = rss.New(feed.Title, source, feedLink, feed.Description, feed.Language, lastBuildDate.UTC())
 	if err != nil {
 		return rss.Rss{}, err
 	}
@@ -92,11 +94,15 @@ func Core(ctx context.Context, logger infrastructure.Logger, repository rss.IRss
 	for _, item := range feed.Items {
 		guid := rss.Guid{Value: item.GUID}
 
-		authorEmail := ""
+		author := ""
 		if item.Author != nil {
-			authorEmail = item.Author.Email
+			if item.Author.Email != "" {
+				author = item.Author.Email
+			} else {
+				author = item.Author.Name
+			}
 		}
-		entryItem, err := rss.NewItem(guid, item.Title, item.Link, item.Description, authorEmail, *item.PublishedParsed)
+		entryItem, err := rss.NewItem(guid, item.Title, item.Link, item.Description, author, *item.PublishedParsed)
 		if err != nil {
 			logger.Error("Validation error when creating RSS item", "error", err, "item", item.Title)
 			continue
@@ -125,6 +131,20 @@ func getMessage(record events.SNSEventRecord) (message message.Subscribe, err er
 	return message, err
 }
 
+func getLastBuildDate(feed gofeed.Feed) (lastBuildDate time.Time) {
+	if feed.UpdatedParsed != nil {
+		lastBuildDate = *feed.UpdatedParsed
+	}
+
+	for _, item := range feed.Items {
+		if lastBuildDate.Before(*item.PublishedParsed) {
+			lastBuildDate = *item.PublishedParsed
+		}
+	}
+
+	return lastBuildDate
+}
+
 func main() {
 	if os.Getenv("ENV") == "myhost" {
 		event := events.SNSEvent{
@@ -132,7 +152,7 @@ func main() {
 				{
 					SNS: events.SNSEntity{
 						MessageID: "12345",
-						Message:   `{"feed_url": "https://buildersbox.corp-sansan.com/rss"}`,
+						Message:   `{"feed_url": "https://techcrunch.com/feed"}`,
 					},
 				},
 			},
