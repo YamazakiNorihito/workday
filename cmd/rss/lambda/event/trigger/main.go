@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"log/slog"
 	"os"
+	"strconv"
+	"time"
 
 	"github.com/YamazakiNorihito/workday/cmd/rss/lambda/event/shared"
 	awsConfig "github.com/YamazakiNorihito/workday/cmd/rss/lambda/event/shared/aws_config"
@@ -22,7 +24,12 @@ func handler(ctx context.Context, event events.EventBridgeEvent) error {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil)).With("EventBridgeID", event.ID)
 	logger.Info("EventBridgeEvent Event", "event", shared.EventBridgeEventToJson(event))
 
-	err := Core(ctx, logger, snsTopicClient)
+	batchSize, err := strconv.Atoi(os.Getenv("BATCH_SIZE"))
+	if err != nil {
+		panic("Invalid BATCH_SIZE value: must be an integer")
+	}
+
+	err = Core(ctx, logger, snsTopicClient, batchSize)
 	if err != nil {
 		logger.Error("Core function execution failed", "error", err)
 		return err
@@ -32,7 +39,7 @@ func handler(ctx context.Context, event events.EventBridgeEvent) error {
 	return nil
 }
 
-func Core(ctx context.Context, logger infrastructure.Logger, rssWritePublisher shared.Publisher) error {
+func Core(ctx context.Context, logger infrastructure.Logger, rssWritePublisher shared.Publisher, batchSize int) error {
 	feedURLs := [12]string{
 		"https://azure.microsoft.com/ja-jp/blog/feed/",
 		"https://aws.amazon.com/jp/blogs/news/feed/",
@@ -48,6 +55,7 @@ func Core(ctx context.Context, logger infrastructure.Logger, rssWritePublisher s
 		"https://techcrunch.com/feed",
 	}
 
+	counter := 0
 	for _, feedURL := range feedURLs {
 		message := message.Subscribe{FeedURL: feedURL}
 		rssJson, _ := json.Marshal(message)
@@ -55,6 +63,11 @@ func Core(ctx context.Context, logger infrastructure.Logger, rssWritePublisher s
 		if err != nil {
 			logger.Error("Failed to publish RSS entry", "error", err)
 			return err
+		}
+
+		counter++
+		if counter%batchSize == 0 {
+			time.Sleep(2 * time.Second)
 		}
 	}
 	return nil

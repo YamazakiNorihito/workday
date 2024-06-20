@@ -16,7 +16,7 @@ Resources:
         - x86_64
       Handler: bootstrap
       Role: !Ref LambdaRoleArn
-      Timeout: 10
+      Timeout: 60
       PackageType: Zip
       Code:
         S3Bucket: "nybeyond-com-deploy"
@@ -26,6 +26,7 @@ Resources:
       Environment:
         Variables:
           RSS_SUBSCRIBE_ARN: !Ref RssSubscribeArn
+          BATCH_SIZE: 1
   LambdaLogGroup:
     Type: 'AWS::Logs::LogGroup'
     Properties:
