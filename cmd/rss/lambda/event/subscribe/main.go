@@ -1,7 +1,10 @@
 package main
 
 import (
+	"bytes"
+	"compress/gzip"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"log/slog"
@@ -53,7 +56,27 @@ func processRecord(ctx context.Context, logger infrastructure.Logger, rssReposit
 		return err
 	}
 
-	writeMessage := message.Write{RssEntry: entryRss}
+	serializedRss, _ := json.Marshal(entryRss)
+	var writeMessage message.Write
+	if len(serializedRss) > message.MaxMessageSize {
+		compressedRssData, err := compressAndEncodeData(serializedRss)
+		if err != nil {
+			return err
+		}
+
+		writeMessage = message.Write{
+			Compressed: true,
+			Data:       compressedRssData,
+		}
+		logger.Info("Data size before and after compression", "originalSize", len(serializedRss), "compressedSize", len(compressedRssData))
+	} else {
+		writeMessage = message.Write{
+			Compressed: false,
+			RssFeed:    entryRss,
+		}
+		logger.Info("Data size", "size", len(serializedRss))
+	}
+
 	rssJson, _ := json.Marshal(writeMessage)
 	err = rssWritePublisher.Publish(ctx, string(rssJson))
 	if err != nil {
@@ -71,6 +94,7 @@ func Core(ctx context.Context, logger infrastructure.Logger, repository rss.IRss
 
 	feed, err := getFeed(ctx, feedURL)
 	if err != nil {
+		logger.Error("Failed to retrieve RSS feed", "URL", feedURL, "error", err)
 		return rss.Rss{}, err
 	}
 
@@ -90,9 +114,14 @@ func Core(ctx context.Context, logger infrastructure.Logger, repository rss.IRss
 		existingRss.SetLastBuildDate(rssEntry.LastBuildDate)
 		rssEntry = existingRss
 	}
+	logger.Info("RSS entry existence check", "exists", exists, "rssSource", rssEntry.Source)
 
 	for _, item := range feed.Items {
-		guid := rss.Guid{Value: item.GUID}
+		guid, err := getGuid(*item)
+		if err != nil {
+			logger.Error("Failed to create GUID from RSS item link", "error", err, "item", item.Title, "link", item.Link)
+			continue
+		}
 
 		author := ""
 		if item.Author != nil {
@@ -145,6 +174,34 @@ func getLastBuildDate(feed gofeed.Feed) (lastBuildDate time.Time) {
 	return lastBuildDate
 }
 
+func getGuid(item gofeed.Item) (rss.Guid, error) {
+	guid := rss.Guid{Value: item.GUID}
+
+	if guid.Value == "" {
+		link, err := url.Parse(item.Link)
+		if err != nil {
+			return rss.Guid{}, err
+		}
+		link.RawQuery = ""
+		guid = rss.Guid{Value: link.String()}
+	}
+
+	return guid, nil
+}
+
+func compressAndEncodeData(data []byte) ([]byte, error) {
+	var buffer bytes.Buffer
+	gzipWriter := gzip.NewWriter(&buffer)
+	if _, err := gzipWriter.Write(data); err != nil {
+		return nil, err
+	}
+	if err := gzipWriter.Close(); err != nil {
+		return nil, err
+	}
+
+	return []byte(base64.StdEncoding.EncodeToString(buffer.Bytes())), nil
+}
+
 func main() {
 	if os.Getenv("ENV") == "myhost" {
 		event := events.SNSEvent{
@@ -152,7 +209,7 @@ func main() {
 				{
 					SNS: events.SNSEntity{
 						MessageID: "12345",
-						Message:   `{"feed_url": "https://techcrunch.com/feed"}`,
+						Message:   `{"feed_url": "https://techcrunch.com/feed/"}`,
 					},
 				},
 			},

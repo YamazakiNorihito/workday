@@ -16,7 +16,7 @@ Resources:
         - x86_64
       Handler: bootstrap
       Role: !Ref LambdaRoleArn
-      Timeout: 10
+      Timeout: 30
       PackageType: Zip
       Code:
         S3Bucket: "nybeyond-com-deploy"

@@ -29,7 +29,11 @@ func (r *DynamoDBStore) GetItemById(ctx context.Context, partitionkey string, so
 			"sortKey": &types.AttributeValueMemberS{Value: sortKey},
 		},
 	}
-	result, err := r.client.GetItem(ctx, input)
+	optFns := func(o *dynamodb.Options) {
+		o.RetryMaxAttempts = 1
+		o.RetryMode = aws.RetryModeStandard
+	}
+	result, err := r.client.GetItem(ctx, input, optFns)
 
 	if err != nil {
 		return nil, err
@@ -48,7 +52,11 @@ func (r *DynamoDBStore) QueryItemsBySortPrefix(ctx context.Context, partitionkey
 			":sortKeyPrefix": &types.AttributeValueMemberS{Value: sortKeyPrefix},
 		},
 	}
-	result, err := r.client.Query(ctx, input)
+	optFns := func(o *dynamodb.Options) {
+		o.RetryMaxAttempts = 1
+		o.RetryMode = aws.RetryModeStandard
+	}
+	result, err := r.client.Query(ctx, input, optFns)
 	if err != nil {
 		return nil, err
 	}
@@ -67,8 +75,12 @@ func (r *DynamoDBStore) PutItem(ctx context.Context, item interface{}) error {
 		TableName: &r.TableName,
 		Item:      mapItem,
 	}
+	optFns := func(o *dynamodb.Options) {
+		o.RetryMaxAttempts = 1
+		o.RetryMode = aws.RetryModeStandard
+	}
 
-	_, err = r.client.PutItem(ctx, input)
+	_, err = r.client.PutItem(ctx, input, optFns)
 	if err != nil {
 		return err
 	}
