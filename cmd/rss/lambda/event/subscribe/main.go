@@ -161,16 +161,15 @@ func getMessage(record events.SNSEventRecord) (message message.Subscribe, err er
 }
 
 func getLastBuildDate(feed gofeed.Feed) (lastBuildDate time.Time) {
-	if feed.UpdatedParsed != nil {
-		lastBuildDate = *feed.UpdatedParsed
-	}
-
 	for _, item := range feed.Items {
-		if lastBuildDate.Before(*item.PublishedParsed) {
+		if item.PublishedParsed != nil && lastBuildDate.Before(*item.PublishedParsed) {
 			lastBuildDate = *item.PublishedParsed
 		}
 	}
 
+	if lastBuildDate.IsZero() && feed.UpdatedParsed != nil {
+		lastBuildDate = *feed.UpdatedParsed
+	}
 	return lastBuildDate
 }
 
