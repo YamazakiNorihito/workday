@@ -73,13 +73,8 @@ func Core(ctx context.Context, logger infrastructure.Logger, repository rss.IRss
 		return rss.Rss{}, err
 	}
 
-	feedLink := feed.Link
-	if feedLink == "" {
-		feedLink = feed.FeedLink
-	}
-
 	lastBuildDate := getLastBuildDate(*feed)
-	rssEntry, err = rss.New(feed.Title, source, feedLink, feed.Description, feed.Language, lastBuildDate.UTC())
+	rssEntry, err = rss.New(feed.Title, source, feedURL, feed.Description, feed.Language, lastBuildDate.UTC())
 	if err != nil {
 		return rss.Rss{}, err
 	}

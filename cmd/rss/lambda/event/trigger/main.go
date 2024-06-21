@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"log/slog"
 	"os"
 	"strconv"
@@ -10,11 +9,33 @@ import (
 
 	"github.com/YamazakiNorihito/workday/cmd/rss/lambda/event/shared"
 	awsConfig "github.com/YamazakiNorihito/workday/cmd/rss/lambda/event/shared/aws_config"
+	"github.com/YamazakiNorihito/workday/cmd/rss/lambda/event/trigger/app_service"
 	"github.com/YamazakiNorihito/workday/internal/infrastructure"
-	"github.com/YamazakiNorihito/workday/pkg/rss/message"
+	"github.com/YamazakiNorihito/workday/pkg/throttle"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 )
+
+type feedRepository struct{}
+
+func (r *feedRepository) GetFeedURLs() []string {
+	return []string{
+		"https://azure.microsoft.com/ja-jp/blog/feed/",
+		"https://aws.amazon.com/jp/blogs/news/feed/",
+		"https://developers-jp.googleblog.com/atom.xml",
+		"https://techblog.nhn-techorus.com/feed",
+		"https://buildersbox.corp-sansan.com/rss",
+		"https://knowledge.sakura.ad.jp/rss/",
+		"https://www.oreilly.co.jp/catalog/soon.xml",
+		"https://go.dev/blog/feed.atom",
+		"https://connpass.com/explore/ja.atom",
+		"https://www.ipa.go.jp/security/alert-rss.rdf",
+		"https://feed.infoq.com",
+		"https://techcrunch.com/feed",
+	}
+}
+
+type Executer func(ctx context.Context, logger infrastructure.Logger) error
 
 func handler(ctx context.Context, event events.EventBridgeEvent) error {
 	cfg := awsConfig.LoadConfig(ctx)
@@ -29,9 +50,19 @@ func handler(ctx context.Context, event events.EventBridgeEvent) error {
 		panic("Invalid BATCH_SIZE value: must be an integer")
 	}
 
-	err = Core(ctx, logger, snsTopicClient, batchSize)
+	throttleConfig := throttle.Config{
+		BatchSize: batchSize,
+		Sleep:     func() { time.Sleep(2 * time.Second) },
+	}
+	feedProvider := feedRepository{}
+
+	executer := func(ctx context.Context, logger infrastructure.Logger) error {
+		return app_service.Execute(ctx, logger, snsTopicClient, throttleConfig, &feedProvider)
+	}
+
+	err = ProcessRecord(ctx, logger, event, executer)
 	if err != nil {
-		logger.Error("Core function execution failed", "error", err)
+		logger.Error("ProcessRecord function execution failed", "error", err)
 		return err
 	}
 
@@ -39,47 +70,10 @@ func handler(ctx context.Context, event events.EventBridgeEvent) error {
 	return nil
 }
 
-func Core(ctx context.Context, logger infrastructure.Logger, rssWritePublisher shared.Publisher, batchSize int) error {
-	feedURLs := [12]string{
-		"https://azure.microsoft.com/ja-jp/blog/feed/",
-		"https://aws.amazon.com/jp/blogs/news/feed/",
-		"https://developers-jp.googleblog.com/atom.xml",
-		"https://techblog.nhn-techorus.com/feed",
-		"https://buildersbox.corp-sansan.com/rss",
-		"https://knowledge.sakura.ad.jp/rss/",
-		"https://www.oreilly.co.jp/catalog/soon.xml",
-		"https://go.dev/blog/feed.atom",
-		"https://connpass.com/explore/ja.atom",
-		"https://www.ipa.go.jp/security/alert-rss.rdf",
-		"https://feed.infoq.com",
-		"https://techcrunch.com/feed",
-	}
-
-	counter := 0
-	for _, feedURL := range feedURLs {
-		message := message.Subscribe{FeedURL: feedURL}
-		rssJson, _ := json.Marshal(message)
-		err := rssWritePublisher.Publish(ctx, string(rssJson))
-		if err != nil {
-			logger.Error("Failed to publish RSS entry", "error", err)
-			return err
-		}
-
-		counter++
-		if counter%batchSize == 0 {
-			time.Sleep(2 * time.Second)
-		}
-	}
-	return nil
+func ProcessRecord(ctx context.Context, logger infrastructure.Logger, event events.EventBridgeEvent, executer Executer) error {
+	return executer(ctx, logger)
 }
 
 func main() {
-	if os.Getenv("ENV") == "myhost" {
-		event := events.EventBridgeEvent{
-			ID: "test-event-id",
-		}
-		handler(context.Background(), event)
-	} else {
-		lambda.Start(handler)
-	}
+	lambda.Start(handler)
 }
