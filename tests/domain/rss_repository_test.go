@@ -12,6 +12,7 @@ import (
 	"github.com/YamazakiNorihito/workday/tests/helper/assert_helper"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/stretchr/testify/assert"
@@ -228,6 +229,39 @@ func TestRssRepository_FindBySource(t *testing.T) {
 		assert.Equal(t, metadata.UpdateBy{ID: "test-id", Name: "test-user"}, actual_rss.UpdatedBy)
 		assert.NotEmpty(t, actual_rss.UpdatedAt)
 
+		// item
+		assert.Len(t, actual_rss.Items, 0)
+	})
+}
+
+func TestRssRepository_FindItems(t *testing.T) {
+	t.Run("should return error when rss is empty", func(t *testing.T) {
+		// Arrange
+		ctx, client := setUp()
+		rssRepository := rss.NewDynamoDBRssRepository(client)
+		setupExpectedRss(t, ctx, rssRepository)
+
+		// Act
+		actual_rss, err := rssRepository.FindItems(ctx, rss.Rss{})
+
+		// Assert
+		assert.Error(t, err)
+		assert.Equal(t, rss.Rss{}, actual_rss)
+		assert.Len(t, actual_rss.Items, 0)
+	})
+
+	t.Run("should return Items when rss exists", func(t *testing.T) {
+		// Arrange
+		ctx, client := setUp()
+		rssRepository := rss.NewDynamoDBRssRepository(client)
+		setUpRss := setupExpectedRss(t, ctx, rssRepository)
+
+		// Act
+		actual_rss, err := rssRepository.FindItems(ctx, setUpRss)
+
+		// Assert
+		assert.NoError(t, err)
+
 		// item1
 		actual_item1, _ := actual_rss.Items[rss.Guid{Value: "guid-12345"}]
 		assert.NotEmpty(t, actual_item1)
@@ -248,9 +282,51 @@ func TestRssRepository_FindBySource(t *testing.T) {
 	})
 }
 
+func TestRssRepository_FindItem(t *testing.T) {
+	t.Run("should return error when rss is empty", func(t *testing.T) {
+		// Arrange
+		ctx, client := setUp()
+		rssRepository := rss.NewDynamoDBRssRepository(client)
+		setupExpectedRss(t, ctx, rssRepository)
+
+		// Act
+		actual_rss, err := rssRepository.FindItemsByPk(ctx, rss.Rss{}, rss.Guid{})
+
+		// Assert
+		assert.Error(t, err)
+		assert.Equal(t, rss.Rss{}, actual_rss)
+		assert.Len(t, actual_rss.Items, 0)
+	})
+
+	t.Run("should return Items when rss exists", func(t *testing.T) {
+		// Arrange
+		ctx, client := setUp()
+		rssRepository := rss.NewDynamoDBRssRepository(client)
+		setUpRss := setupExpectedRss(t, ctx, rssRepository)
+
+		// Act
+		actual_rss, err := rssRepository.FindItemsByPk(ctx, setUpRss, rss.Guid{Value: "guid-12345"})
+
+		// Assert
+		assert.NoError(t, err)
+
+		// item1
+		actual_item1, _ := actual_rss.Items[rss.Guid{Value: "guid-12345"}]
+		assert.NotEmpty(t, actual_item1)
+		assert.Equal(t, "Test Title 1", actual_item1.Title)
+		assert.Equal(t, "http://example.com/1", actual_item1.Link)
+		assert.Equal(t, "Test description 1", actual_item1.Description)
+		assert.Equal(t, "Test Author 1", actual_item1.Author)
+		assert.Equal(t, time.Date(2023, time.June, 1, 13, 30, 0, 0, time.UTC), actual_item1.PubDate.UTC())
+	})
+}
+
 func setUp() (ctx context.Context, client *dynamodb.Client) {
 	ctx = context.Background()
-	cfg, err := config.LoadDefaultConfig(ctx)
+	cfg, err := config.LoadDefaultConfig(ctx, func(o *config.LoadOptions) error {
+		o.Credentials = credentials.NewStaticCredentialsProvider("dummy", "dummy", "")
+		return nil
+	})
 
 	if err != nil {
 		panic(fmt.Sprintf("Error loading AWS configuration: %v", err))
@@ -301,7 +377,7 @@ type rssSaver interface {
 	Save(ctx context.Context, rss rss.Rss, updateBy metadata.UserMeta) (rss.Rss, error)
 }
 
-func setupExpectedRss(t *testing.T, ctx context.Context, rssSaver rssSaver) {
+func setupExpectedRss(t *testing.T, ctx context.Context, rssSaver rssSaver) (setUpRss rss.Rss) {
 	var test_rss rss.Rss
 	helper.MustSucceed(t, func() error {
 		var err error
@@ -334,4 +410,6 @@ func setupExpectedRss(t *testing.T, ctx context.Context, rssSaver rssSaver) {
 	if err != nil {
 		panic(err)
 	}
+
+	return test_rss
 }

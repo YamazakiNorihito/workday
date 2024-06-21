@@ -64,6 +64,8 @@ func (r *rssModel) NewItemModel(item Item) itemModel {
 
 type IRssRepository interface {
 	FindBySource(ctx context.Context, source string) (Rss, error)
+	FindItems(ctx context.Context, rss Rss) (Rss, error)
+	FindItemsByPk(ctx context.Context, rss Rss, guid Guid) (Rss, error)
 	Save(ctx context.Context, rss Rss, updateBy metadata.UserMeta) (Rss, error)
 }
 
@@ -75,6 +77,10 @@ func NewDynamoDBRssRepository(client *dynamodb.Client) *DynamoDBRssRepository {
 	return &DynamoDBRssRepository{dynamoDBStore: *infrastructure.NewDynamoDBStore(client, "Rss")}
 }
 
+// FindBySource retrieves an Rss instance from the repository based on the given source.
+// Note:
+// - Due to data volume concerns, `Item` data is not returned by this function.
+// - If `Item` data is needed, use `FindItems` or `FindItemsByPk` functions instead.
 func (r *DynamoDBRssRepository) FindBySource(ctx context.Context, source string) (Rss, error) {
 
 	if source == "" {
@@ -86,14 +92,9 @@ func (r *DynamoDBRssRepository) FindBySource(ctx context.Context, source string)
 		return Rss{}, err
 	}
 
-	itemModels, err := r.getItemModels(ctx, source, rssModel.RssId)
-	if err != nil {
-		return Rss{}, err
-	}
-
 	manager := rssManager{
 		rss:   rssModel,
-		items: itemModels,
+		items: []itemModel{},
 	}
 
 	return buildRss(manager), nil
@@ -109,6 +110,63 @@ func (r *DynamoDBRssRepository) getRssModel(ctx context.Context, source string) 
 	err = attributevalue.UnmarshalMap(result.Item, &model)
 	if err != nil {
 		return rssModel{}, err
+	}
+
+	return model, nil
+}
+
+func (r *DynamoDBRssRepository) FindItems(ctx context.Context, rss Rss) (Rss, error) {
+	if rss.Source == "" {
+		return Rss{}, errors.New("invalid source")
+	}
+
+	manager := buildRssManager(rss)
+	itemModels, err := r.getItemModels(ctx, manager.rss.PartitionKey, manager.rss.RssId)
+	if err != nil {
+		return Rss{}, err
+	}
+
+	finalManager := rssManager{
+		rss:   manager.rss,
+		items: itemModels,
+	}
+
+	return buildRss(finalManager), nil
+}
+
+func (r *DynamoDBRssRepository) FindItemsByPk(ctx context.Context, rss Rss, guid Guid) (Rss, error) {
+	if rss.ID.String() == "" || guid.Value == "" {
+		return Rss{}, errors.New("invalid source")
+	}
+
+	manager := buildRssManager(rss)
+	searchItemModel := manager.rss.NewItemModel(Item{Guid: guid})
+
+	findItemModel, err := r.getItemModel(ctx, searchItemModel.PartitionKey, searchItemModel.SortKey)
+	if err != nil {
+		return Rss{}, err
+	}
+
+	itemModels := []itemModel{findItemModel}
+
+	finalManager := rssManager{
+		rss:   manager.rss,
+		items: itemModels,
+	}
+
+	return buildRss(finalManager), nil
+}
+
+func (r *DynamoDBRssRepository) getItemModel(ctx context.Context, partitionKey string, sortKey string) (itemModel, error) {
+	result, err := r.dynamoDBStore.GetItemById(ctx, partitionKey, sortKey)
+	if err != nil {
+		return itemModel{}, err
+	}
+
+	var model itemModel
+	err = attributevalue.UnmarshalMap(result.Item, &model)
+	if err != nil {
+		return itemModel{}, err
 	}
 
 	return model, nil
