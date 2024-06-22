@@ -319,6 +319,23 @@ func TestRssRepository_FindItem(t *testing.T) {
 		assert.Equal(t, "Test Author 1", actual_item1.Author)
 		assert.Equal(t, time.Date(2023, time.June, 1, 13, 30, 0, 0, time.UTC), actual_item1.PubDate.UTC())
 	})
+
+	t.Run("should return empty Items when GUID does not exist", func(t *testing.T) {
+		// Arrange
+		ctx, client := setUp()
+		rssRepository := rss.NewDynamoDBRssRepository(client)
+		setUpRss := setupExpectedRss(t, ctx, rssRepository)
+
+		// Act
+		actual_rss, err := rssRepository.FindItemsByPk(ctx, setUpRss, rss.Guid{Value: "non-existent-guid"})
+
+		// Assert
+		assert.NoError(t, err)
+		actual_item, exists := actual_rss.Items[rss.Guid{Value: "non-existent-guid"}]
+		assert.False(t, exists)
+		assert.Empty(t, actual_item)
+		assert.Len(t, actual_rss.Items, 0)
+	})
 }
 
 func setUp() (ctx context.Context, client *dynamodb.Client) {

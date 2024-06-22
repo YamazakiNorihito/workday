@@ -147,7 +147,12 @@ func (r *DynamoDBRssRepository) FindItemsByPk(ctx context.Context, rss Rss, guid
 		return Rss{}, err
 	}
 
-	itemModels := []itemModel{findItemModel}
+	var itemModels []itemModel
+	if findItemModel.PartitionKey != "" {
+		itemModels = []itemModel{findItemModel}
+	} else {
+		itemModels = []itemModel{}
+	}
 
 	finalManager := rssManager{
 		rss:   manager.rss,
