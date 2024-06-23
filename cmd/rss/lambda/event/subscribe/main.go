@@ -131,7 +131,13 @@ func Core(ctx context.Context, logger infrastructure.Logger, repository rss.IRss
 				author = item.Author.Name
 			}
 		}
-		entryItem, err := rss.NewItem(guid, item.Title, item.Link, item.Description, author, *item.PublishedParsed)
+		textDescription, err := ExtractTextFromHTML(item.Description)
+		if err != nil {
+			logger.Error("Failed to extract text from HTML content in RSS item description", "error", err, "itemTitle", item.Title)
+			continue
+		}
+
+		entryItem, err := rss.NewItem(guid, item.Title, item.Link, textDescription, author, *item.PublishedParsed)
 		if err != nil {
 			logger.Error("Validation error when creating RSS item", "error", err, "item", item.Title)
 			continue
@@ -208,7 +214,7 @@ func main() {
 				{
 					SNS: events.SNSEntity{
 						MessageID: "12345",
-						Message:   `{"feed_url": "https://techcrunch.com/feed/"}`,
+						Message:   `{"feed_url": "https://buildersbox.corp-sansan.com/rss"}`,
 					},
 				},
 			},

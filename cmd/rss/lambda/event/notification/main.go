@@ -56,6 +56,12 @@ func handler(ctx context.Context, event events.DynamoDBEvent) error {
 
 func processRecord(ctx context.Context, logger infrastructure.Logger, rssRepository rss.IRssRepository, slackSender SlackSender, record events.DynamoDBEventRecord) {
 	logger.Info("Processing DynamoDB", "record", record)
+
+	if record.EventName == "REMOVE" {
+		logger.Info("REMOVE event detected, skipping processing")
+		return
+	}
+
 	if record.Change.NewImage["sortKey"].String() != "rss" {
 		logger.Info("対象外のレコードです")
 		return
@@ -84,7 +90,12 @@ func Core(ctx context.Context, logger infrastructure.Logger, rssRepository rss.I
 		return nil
 	}
 
-	postMessage := makeMessage(newImageRss, func(item rss.Item) bool {
+	modifyRss, err := rss.GetItems(ctx, rssRepository, newImageRss)
+	if err != nil {
+		return err
+	}
+
+	postMessage := makeMessage(modifyRss, func(item rss.Item) bool {
 		result := now.Sub(item.PubDate) <= updateTimeThreshold
 		logger.Info(fmt.Sprintf("Checking item with PubDate: %s, Current time: %s, Update time threshold: %v, Result: %t",
 			item.PubDate.Format(time.RFC3339), now.Format(time.RFC3339), updateTimeThreshold, result))

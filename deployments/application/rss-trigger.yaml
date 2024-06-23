@@ -39,7 +39,7 @@ Resources:
       Target:
         Arn: !GetAtt FunctionStack.Arn
         RoleArn: !Ref SchedulerRoleArn
-      ScheduleExpression: "cron(*/30 * * * ? *)"
+      ScheduleExpression: "cron(*/15 * * * ? *)"
       ScheduleExpressionTimezone: "UTC"
       FlexibleTimeWindow:
         MaximumWindowInMinutes: 8

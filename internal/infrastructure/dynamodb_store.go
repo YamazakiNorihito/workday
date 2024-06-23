@@ -76,7 +76,7 @@ func (r *DynamoDBStore) PutItem(ctx context.Context, item interface{}) error {
 		Item:      mapItem,
 	}
 	optFns := func(o *dynamodb.Options) {
-		o.RetryMaxAttempts = 1
+		o.RetryMaxAttempts = 3
 		o.RetryMode = aws.RetryModeStandard
 	}
 

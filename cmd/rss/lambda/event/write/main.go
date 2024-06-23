@@ -54,17 +54,47 @@ func processRecord(ctx context.Context, logger infrastructure.Logger, rssReposit
 
 func Core(ctx context.Context, logger infrastructure.Logger, rssRepository rss.IRssRepository, rssEntry rss.Rss) (rss.Rss, error) {
 	exists, existingRss := rss.Exists(ctx, rssRepository, rssEntry)
-	logger.Info("save", "isExist", exists, "rss", rssEntry.Source)
+	logger.Info("Checking existence of RSS entry", "exists", exists, "source", rssEntry.Source)
 
 	if exists {
 		if existingRss.LastBuildDate.Equal(rssEntry.LastBuildDate) {
-			logger.Info("No update needed", "rss", rssEntry.Source)
+			logger.Info("RSS entry is up-to-date, no update needed", "source", rssEntry.Source)
 			return existingRss, nil
 		}
+	}
+	cleansingRss, err := cleansing(ctx, logger, rssRepository, rssEntry)
+	if err != nil {
+		return rss.Rss{}, err
+	}
+
+	if len(cleansingRss.Items) == 0 {
+		logger.Info("No records to update, skipping update", "source", rssEntry.Source)
+		return rssEntry, nil
 	}
 
 	savedRss, err := rssRepository.Save(ctx, rssEntry, metadata.UserMeta{ID: rssEntry.Source, Name: rssEntry.Source})
 	return savedRss, err
+}
+
+func cleansing(ctx context.Context, logger infrastructure.Logger, rssRepository rss.IRssRepository, rssEntry rss.Rss) (cleansingRss rss.Rss, err error) {
+	cleansingRss = rssEntry
+	cleansingRss.Items = map[rss.Guid]rss.Item{}
+
+	for key, item := range rssEntry.Items {
+		findItem, err := rss.GetItem(ctx, rssRepository, rssEntry, key)
+		if err != nil {
+			logger.Error("Error retrieving item", "error", err, "source", rssEntry.Source, "guid", key)
+			continue
+		}
+
+		if len(findItem.Items) == 0 {
+			cleansingRss.Items[key] = item
+		} else {
+			logger.Info("Item already exists and will not be added", "source", rssEntry.Source, "guid", key)
+		}
+	}
+
+	return cleansingRss, nil
 }
 
 func getMessage(record events.SNSEventRecord) (message message.Write, err error) {
