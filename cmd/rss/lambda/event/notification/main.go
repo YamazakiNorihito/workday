@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -127,14 +128,13 @@ func makeMessage(r rss.Rss, itemFilter func(item rss.Item) bool) string {
 	}
 	messageBuilder.WriteString("\n\n*最新の記事:*\n")
 
-	const viewLength = 74 * 2
 	i := 1
 	for _, item := range r.Items {
 		if itemFilter(item) == false {
 			continue
 		}
 
-		truncatedDescription := truncate(item.Description, viewLength)
+		truncatedDescription := truncate(item.Description)
 		messageBuilder.WriteString(fmt.Sprintf("%d. *記事タイトル:* <%s|%s>\n    *公開日:* %s\n    *概要:* %s\n    *カテゴリ:* %s\n\n",
 			i, item.Link, item.Title, item.PubDate.Format(time.RFC3339), truncatedDescription, strings.Join(item.Tags, ", ")))
 		i++
@@ -143,11 +143,17 @@ func makeMessage(r rss.Rss, itemFilter func(item rss.Item) bool) string {
 	return messageBuilder.String()
 }
 
-func truncate(s string, maxLength int) string {
-	if len(s) > maxLength {
-		return s[:maxLength] + "..."
+func truncate(s string) string {
+	const viewLength = 50 * 4
+
+	re := regexp.MustCompile(`\s+|\n|\r|\t`)
+	trimmedString := re.ReplaceAllString(s, " ")
+
+	runes := []rune(trimmedString)
+	if len(runes) > viewLength {
+		return string(runes[:viewLength]) + "..."
 	}
-	return s
+	return string(runes)
 }
 
 func main() {
