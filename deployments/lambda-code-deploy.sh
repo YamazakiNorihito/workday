@@ -28,13 +28,16 @@ REGION="us-east-1"
 aws s3 sync binaries "s3://${BUCKET}/binaries" --exclude "deploy*" --profile "${PROFILE}"
 
 # Function names and corresponding S3 keys
-FUNCTION_NAMES=("RssNotificationFunction" "RssSubscribeFunction" "RssTriggerFunction" "RssWriteFunction")
-S3_KEYS=("binaries/rss/lambda/event/notification/function.zip" "binaries/rss/lambda/event/subscribe/function.zip" "binaries/rss/lambda/event/trigger/function.zip" "binaries/rss/lambda/event/write/function.zip")
+FUNCTIONs=("RssNotificationFunction:binaries/rss/lambda/event/notification/function.zip"
+        "RssSubscribeFunction:binaries/rss/lambda/event/subscribe/function.zip"
+        "RssTriggerFunction:binaries/rss/lambda/event/trigger/function.zip"
+        "RssWriteFunction:binaries/rss/lambda/event/write/function.zip")
 
 # Update Lambda functions
-for i in "${!FUNCTION_NAMES[@]}"; do
-    function_name="${FUNCTION_NAMES[$i]}"
-    s3_key="${S3_KEYS[$i]}"
+for FUNCTION in "${FUNCTIONs[@]}"; do
+    function_name="${FUNCTION%%:*}"
+    s3_key="${FUNCTION#*:}"
+
     echo "Updating Lambda function $function_name with S3 key $s3_key..."
     aws lambda update-function-code \
         --function-name "$function_name" \
