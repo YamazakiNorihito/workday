@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
+	"github.com/aws/aws-sdk-go-v2/service/translate"
 )
 
 type SNSTopicClient struct {
@@ -39,5 +40,10 @@ func (c *AwsConfig) NewSnsClient() *sns.Client {
 			o.BaseEndpoint = aws.String(endpoint)
 		}
 	})
+	return client
+}
+
+func (c *AwsConfig) NewTranslateClient() *translate.Client {
+	client := translate.NewFromConfig(c.cfg)
 	return client
 }

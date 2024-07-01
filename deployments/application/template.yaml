@@ -17,7 +17,7 @@ Resources:
       Parameters:
         LambdaRoleArn: !ImportValue LambdaRoleArn
         TopicArm: !ImportValue RssSubscribeTopicArn
-        RssWriteTopicArn: !ImportValue RssWriteTopicArn
+        RssTranslateTopicArn: !ImportValue RssTranslateTopicArn
   LambdaRssTriggerStack:
     Type: "AWS::CloudFormation::Stack"
     Properties:
@@ -33,3 +33,11 @@ Resources:
       Parameters:
         LambdaRoleArn: !ImportValue LambdaRoleArn
         TopicArm: !ImportValue RssWriteTopicArn
+  LambdaRssTranslateStack:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/application/rss-translate.yaml"
+      Parameters:
+        LambdaRoleArn: !ImportValue LambdaRoleArn
+        TopicArm: !ImportValue RssTranslateTopicArn
+        RssWriteTopicArn: !ImportValue RssWriteTopicArn

@@ -4,13 +4,13 @@ Parameters:
     Type: String
   TopicArm:
     Type: String
-  RssTranslateTopicArn:
+  RssWriteTopicArn:
     Type: String
 Resources:
   FunctionStack:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: "RssSubscribeFunction"
+      FunctionName: "RssTranslateFunction"
       Runtime: provided.al2023
       Architectures:
         - x86_64
@@ -20,16 +20,16 @@ Resources:
       PackageType: Zip
       Code:
         S3Bucket: "nybeyond-com-deploy"
-        S3Key: "binaries/rss/lambda/event/subscribe/function.zip"
+        S3Key: "binaries/rss/lambda/event/translate/function.zip"
       LoggingConfig:
         LogGroup: !Ref LambdaLogGroup
       Environment:
         Variables:
-          RSS_TRANSLATE_ARN: !Ref RssTranslateTopicArn
+          RSS_WRITE_ARN: !Ref RssWriteTopicArn
   LambdaLogGroup:
     Type: 'AWS::Logs::LogGroup'
     Properties:
-      LogGroupName: "/aws/lambda/RssSubscribeFunction"
+      LogGroupName: "/aws/lambda/RssTranslateFunction"
       RetentionInDays: 1
   SubscriptionStack:
     Type: "AWS::SNS::Subscription"

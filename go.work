@@ -2,8 +2,9 @@ go 1.22.2
 
 use (
 	.
-	./cmd/rss/lambda/event/write
-	./cmd/rss/lambda/event/subscribe
-	./cmd/rss/lambda/event/trigger
 	./cmd/rss/lambda/event/notification
+	./cmd/rss/lambda/event/subscribe
+	./cmd/rss/lambda/event/translate
+	./cmd/rss/lambda/event/trigger
+	./cmd/rss/lambda/event/write
 )
