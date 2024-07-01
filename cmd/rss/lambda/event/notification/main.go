@@ -98,8 +98,8 @@ func Core(ctx context.Context, logger infrastructure.Logger, rssRepository rss.I
 
 	itemFilter := func(item rss.Item) bool {
 		result := now.Sub(item.PubDate) <= updateTimeThreshold
-		logger.Info(fmt.Sprintf("Checking item with PubDate: %s, Current time: %s, Update time threshold: %v, Result: %t",
-			item.PubDate.Format(time.RFC3339), now.Format(time.RFC3339), updateTimeThreshold, result))
+		logger.Info(fmt.Sprintf("Checking item with GUID: %s, PubDate: %s, Current time: %s, Update time threshold: %v, Result: %t",
+			item.Guid.Value, item.PubDate.Format(time.RFC3339), now.Format(time.RFC3339), updateTimeThreshold, result))
 		return result
 	}
 

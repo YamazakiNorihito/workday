@@ -1,10 +1,7 @@
 package main
 
 import (
-	"bytes"
-	"compress/gzip"
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"log/slog"
@@ -56,29 +53,7 @@ func processRecord(ctx context.Context, logger infrastructure.Logger, rssReposit
 		return err
 	}
 
-	serializedRss, _ := json.Marshal(entryRss)
-	var writeMessage message.Write
-	if len(serializedRss) > message.MaxMessageSize {
-		compressedRssData, err := compressAndEncodeData(serializedRss)
-		if err != nil {
-			return err
-		}
-
-		writeMessage = message.Write{
-			Compressed: true,
-			Data:       compressedRssData,
-		}
-		logger.Info("Data size before and after compression", "originalSize", len(serializedRss), "compressedSize", len(compressedRssData))
-	} else {
-		writeMessage = message.Write{
-			Compressed: false,
-			RssFeed:    entryRss,
-		}
-		logger.Info("Data size", "size", len(serializedRss))
-	}
-
-	rssJson, _ := json.Marshal(writeMessage)
-	err = rssWritePublisher.Publish(ctx, string(rssJson))
+	err = Publish(ctx, rssWritePublisher, entryRss)
 	if err != nil {
 		return err
 	}
@@ -148,6 +123,20 @@ func Core(ctx context.Context, logger infrastructure.Logger, repository rss.IRss
 	return rssEntry, nil
 }
 
+func Publish(ctx context.Context, rssWritePublisher shared.Publisher, rssEntry rss.Rss) error {
+	writeMessage, err := message.NewWriteMessage(rssEntry)
+	if err != nil {
+		return err
+	}
+
+	rssJson, _ := json.Marshal(writeMessage)
+	err = rssWritePublisher.Publish(ctx, string(rssJson))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func getFQDN(uri string) string {
 	parsedURL, err := url.Parse(uri)
 	if err != nil {
@@ -192,19 +181,6 @@ func getGuid(item gofeed.Item) (rss.Guid, error) {
 	}
 
 	return guid, nil
-}
-
-func compressAndEncodeData(data []byte) ([]byte, error) {
-	var buffer bytes.Buffer
-	gzipWriter := gzip.NewWriter(&buffer)
-	if _, err := gzipWriter.Write(data); err != nil {
-		return nil, err
-	}
-	if err := gzipWriter.Close(); err != nil {
-		return nil, err
-	}
-
-	return []byte(base64.StdEncoding.EncodeToString(buffer.Bytes())), nil
 }
 
 func main() {
