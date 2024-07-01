@@ -58,39 +58,9 @@ func Core(ctx context.Context, logger infrastructure.Logger, rssRepository rss.I
 			return existingRss, nil
 		}
 	}
-	cleansingRss, err := cleansing(ctx, logger, rssRepository, rssEntry)
-	if err != nil {
-		return rss.Rss{}, err
-	}
-
-	if len(cleansingRss.Items) == 0 {
-		logger.Info("No records to update, skipping update", "source", rssEntry.Source)
-		return rssEntry, nil
-	}
 
 	savedRss, err := rssRepository.Save(ctx, rssEntry, metadata.UserMeta{ID: rssEntry.Source, Name: rssEntry.Source})
 	return savedRss, err
-}
-
-func cleansing(ctx context.Context, logger infrastructure.Logger, rssRepository rss.IRssRepository, rssEntry rss.Rss) (cleansingRss rss.Rss, err error) {
-	cleansingRss = rssEntry
-	cleansingRss.Items = map[rss.Guid]rss.Item{}
-
-	for key, item := range rssEntry.Items {
-		findItem, err := rss.GetItem(ctx, rssRepository, rssEntry, key)
-		if err != nil {
-			logger.Error("Error retrieving item", "error", err, "source", rssEntry.Source, "guid", key)
-			continue
-		}
-
-		if len(findItem.Items) == 0 {
-			cleansingRss.Items[key] = item
-		} else {
-			logger.Info("Item already exists and will not be added", "source", rssEntry.Source, "guid", key)
-		}
-	}
-
-	return cleansingRss, nil
 }
 
 func getMessage(record events.SNSEventRecord) (receiveMessage message.Write, err error) {

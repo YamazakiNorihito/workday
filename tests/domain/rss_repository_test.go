@@ -15,6 +15,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -230,6 +231,22 @@ func TestRssRepository_FindBySource(t *testing.T) {
 		assert.NotEmpty(t, actual_rss.UpdatedAt)
 
 		// item
+		assert.Len(t, actual_rss.Items, 0)
+	})
+
+	t.Run("should return empty Rss when source does not exist", func(t *testing.T) {
+		// Arrange
+		ctx, client := setUp()
+		rssRepository := rss.NewDynamoDBRssRepository(client)
+		setupExpectedRss(t, ctx, rssRepository)
+
+		// Act
+		actual_rss, err := rssRepository.FindBySource(ctx, "non-existent_Source")
+
+		// Assert
+		assert.NoError(t, err)
+		assert.Equal(t, actual_rss, rss.Rss{Items: make(map[rss.Guid]rss.Item)})
+		assert.Equal(t, actual_rss.ID, uuid.Nil)
 		assert.Len(t, actual_rss.Items, 0)
 	})
 }

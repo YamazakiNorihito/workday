@@ -227,6 +227,12 @@ func (r *DynamoDBRssRepository) Save(ctx context.Context, rss Rss, updateBy meta
 }
 
 func buildRss(manager rssManager) Rss {
+	if manager.rss.RssId == "" {
+		return Rss{
+			Items: make(map[Guid]Item),
+		}
+	}
+
 	itemsMap := make(map[Guid]Item)
 
 	for _, item := range manager.items {

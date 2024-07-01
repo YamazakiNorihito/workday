@@ -17,18 +17,18 @@ import (
 
 func handler(ctx context.Context, event events.SNSEvent) error {
 	cfg := awsConfig.LoadConfig(ctx)
+	dynamodbClient := cfg.NewDynamodbClient()
 	snsClient := cfg.NewSnsClient()
-	translateClient := cfg.NewTranslateClient()
 
 	snsTopicClient := awsConfig.NewSnsTopicClient(snsClient, os.Getenv("OUTPUT_TOPIC_RSS_ARN"))
-	easyTranslateClient := awsConfig.NewTranslateClient(translateClient)
+	rssRepository := rss.NewDynamoDBRssRepository(dynamodbClient)
 
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	logger.Info("SNS Event", "event", shared.SnsEventToJson(event))
 
 	for _, record := range event.Records {
 		recordLogger := logger.With("messageID", record.SNS.MessageID)
-		err := processRecord(ctx, recordLogger, easyTranslateClient, snsTopicClient, record)
+		err := processRecord(ctx, recordLogger, rssRepository, snsTopicClient, record)
 
 		if err != nil {
 			recordLogger.Error("Failed", "error", err)
@@ -39,14 +39,14 @@ func handler(ctx context.Context, event events.SNSEvent) error {
 	return nil
 }
 
-func processRecord(ctx context.Context, logger infrastructure.Logger, translator shared.Translator, rssWritePublisher shared.Publisher, record events.SNSEventRecord) error {
+func processRecord(ctx context.Context, logger infrastructure.Logger, rssRepository rss.IRssRepository, rssWritePublisher shared.Publisher, record events.SNSEventRecord) error {
 	receiveMessage, err := getMessage(record)
 	if err != nil {
 		return err
 	}
 
 	logger.Info("Processing command", receiveMessage.RssFeed.Source)
-	entryRss, err := Core(ctx, logger, translator, receiveMessage.RssFeed)
+	entryRss, err := Core(ctx, logger, rssRepository, receiveMessage.RssFeed)
 	if err != nil {
 		return err
 	}
@@ -59,34 +59,25 @@ func processRecord(ctx context.Context, logger infrastructure.Logger, translator
 	return nil
 }
 
-func Core(ctx context.Context, logger infrastructure.Logger, translator shared.Translator, rssEntry rss.Rss) (rss.Rss, error) {
-	languageFeedMap := map[string]string{
-		"azure.microsoft.com": "en",
-		"go.dev":              "en",
-		"feed.infoq.com":      "en",
-		"techcrunch.com":      "en",
-	}
+func Core(ctx context.Context, logger infrastructure.Logger, rssRepository rss.IRssRepository, rssEntry rss.Rss) (rss.Rss, error) {
+	exists, existingRss := rss.Exists(ctx, rssRepository, rssEntry)
+	logger.Info("Checking existence of RSS entry", "exists", exists, "source", rssEntry.Source)
 
-	sourceLanguageCode, ok := languageFeedMap[rssEntry.Source]
-	if ok == false {
-		logger.Warn("翻訳対象外のためSkipします", "rssEntry.Source", rssEntry.Source)
+	if exists == false {
 		return rssEntry, nil
 	}
 
-	logger.Info("Source language found", "sourceLanguageCode", sourceLanguageCode)
-	for guid, item := range rssEntry.Items {
-		if len(item.Description) > 0 {
-			translatedText, err := translator.TranslateText(ctx, sourceLanguageCode, "ja", item.Description)
-			if err != nil {
-				logger.Warn("変換に失敗しました。原文のまま処理します。", "item.Title", item.Title, "error", err)
-				continue
-			}
-			logger.Info("Translation succeeded", "item.Title", item.Title, "before", item.Description, "after", translatedText)
-			item.Description = translatedText
-			rssEntry.Items[guid] = item
-		}
+	existingRss.SetLastBuildDate(rssEntry.LastBuildDate)
+	for _, item := range rssEntry.Items {
+		existingRss.AddOrUpdateItem(item)
 	}
-	return rssEntry, nil
+
+	cleansingRss, err := cleansing(ctx, logger, rssRepository, existingRss)
+	if err != nil {
+		return rss.Rss{}, err
+	}
+
+	return cleansingRss, nil
 }
 
 func Publish(ctx context.Context, rssWritePublisher shared.Publisher, rssEntry rss.Rss) error {
@@ -101,6 +92,27 @@ func Publish(ctx context.Context, rssWritePublisher shared.Publisher, rssEntry r
 		return err
 	}
 	return nil
+}
+
+func cleansing(ctx context.Context, logger infrastructure.Logger, rssRepository rss.IRssRepository, rssEntry rss.Rss) (cleansingRss rss.Rss, err error) {
+	cleansingRss = rssEntry
+	cleansingRss.Items = map[rss.Guid]rss.Item{}
+
+	for key, item := range rssEntry.Items {
+		findItem, err := rss.GetItem(ctx, rssRepository, rssEntry, key)
+		if err != nil {
+			logger.Error("Error retrieving item", "error", err, "source", rssEntry.Source, "guid", key)
+			continue
+		}
+
+		if len(findItem.Items) == 0 {
+			cleansingRss.Items[key] = item
+		} else {
+			logger.Info("Item already exists and will not be added", "source", rssEntry.Source, "guid", key)
+		}
+	}
+
+	return cleansingRss, nil
 }
 
 func getMessage(record events.SNSEventRecord) (receiveMessage message.Write, err error) {

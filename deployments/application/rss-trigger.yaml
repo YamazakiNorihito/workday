@@ -4,7 +4,7 @@ Parameters:
     Type: String
   SchedulerRoleArn:
     Type: String
-  RssSubscribeArn:
+  OutPutTopicRssArn:
     Type: String
 Resources:
   FunctionStack:
@@ -25,7 +25,7 @@ Resources:
         LogGroup: !Ref LambdaLogGroup
       Environment:
         Variables:
-          RSS_SUBSCRIBE_ARN: !Ref RssSubscribeArn
+          OUTPUT_TOPIC_RSS_ARN: !Ref OutPutTopicRssArn
           BATCH_SIZE: 1
   LambdaLogGroup:
     Type: 'AWS::Logs::LogGroup'

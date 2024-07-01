@@ -19,7 +19,7 @@ import (
 func handler(ctx context.Context, event events.EventBridgeEvent) error {
 	cfg := awsConfig.LoadConfig(ctx)
 	snsClient := cfg.NewSnsClient()
-	snsTopicClient := awsConfig.NewSnsTopicClient(snsClient, os.Getenv("RSS_SUBSCRIBE_ARN"))
+	snsTopicClient := awsConfig.NewSnsTopicClient(snsClient, os.Getenv("OUTPUT_TOPIC_RSS_ARN"))
 
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil)).With("EventBridgeID", event.ID)
 	logger.Info("EventBridgeEvent Event", "event", shared.EventBridgeEventToJson(event))
