@@ -11,3 +11,7 @@ Resources:
     Type: "AWS::CloudFormation::Stack"
     Properties:
       TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/sns/topic-rss-write.yaml"
+  TopicTranslateStack:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/sns/topic-rss-translate.yaml"

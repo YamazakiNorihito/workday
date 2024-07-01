@@ -55,6 +55,15 @@ Resources:
                 Resource: 
                   - !ImportValue RssWriteTopicArn
                   - !ImportValue RssSubscribeTopicArn
+                  - !ImportValue RssTranslateTopicArn
+        - PolicyName: 'LambdaTranslatePolicy'
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: 'Allow'
+                Action:
+                  - 'translate:TranslateText'
+                Resource: '*'
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaDynamoDBExecutionRole
 Outputs:

@@ -27,7 +27,7 @@ func handler(ctx context.Context, event events.SNSEvent) error {
 	snsClient := cfg.NewSnsClient()
 	dynamodbClient := cfg.NewDynamodbClient()
 
-	snsTopicClient := awsConfig.NewSnsTopicClient(snsClient, os.Getenv("RSS_WRITE_ARN"))
+	snsTopicClient := awsConfig.NewSnsTopicClient(snsClient, os.Getenv("RSS_TRANSLATE_ARN"))
 	rssRepository := rss.NewDynamoDBRssRepository(dynamodbClient)
 
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))

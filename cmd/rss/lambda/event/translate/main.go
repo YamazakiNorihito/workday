@@ -68,17 +68,21 @@ func Core(ctx context.Context, logger infrastructure.Logger, translator shared.T
 
 	sourceLanguageCode, ok := languageFeedMap[rssEntry.Source]
 	if ok == false {
+		logger.Warn("翻訳対象外のためSkipします", "rssEntry.Source", rssEntry.Source)
 		return rssEntry, nil
 	}
 
-	for _, item := range rssEntry.Items {
+	logger.Info("Source language found", "sourceLanguageCode", sourceLanguageCode)
+	for guid, item := range rssEntry.Items {
 		if len(item.Description) > 0 {
-			translatedText, err := translator.TranslateText(ctx, sourceLanguageCode, "jp", item.Description)
+			translatedText, err := translator.TranslateText(ctx, sourceLanguageCode, "ja", item.Description)
 			if err != nil {
-				logger.Warn("Warn", "変換に失敗しました。原文のまま処理します。", err)
+				logger.Warn("変換に失敗しました。原文のまま処理します。", "item.Title", item.Title, "error", err)
 				continue
 			}
+			logger.Info("Translation succeeded", "item.Title", item.Title, "before", item.Description, "after", translatedText)
 			item.Description = translatedText
+			rssEntry.Items[guid] = item
 		}
 	}
 	return rssEntry, nil

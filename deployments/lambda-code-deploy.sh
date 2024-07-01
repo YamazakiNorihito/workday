@@ -5,7 +5,7 @@ set -euo pipefail
 # Directories
 SRC_DIR="./../cmd/rss/lambda/event"
 BIN_DIR="./binaries/rss/lambda/event"
-LAMBDA_DIRS=("notification" "subscribe" "trigger" "write")
+LAMBDA_DIRS=("notification" "subscribe" "trigger" "write" "translate")
 
 # Build and package functions
 for dir in "${LAMBDA_DIRS[@]}"; do
@@ -31,7 +31,8 @@ aws s3 sync binaries "s3://${BUCKET}/binaries" --exclude "deploy*" --profile "${
 FUNCTIONs=("RssNotificationFunction:binaries/rss/lambda/event/notification/function.zip"
         "RssSubscribeFunction:binaries/rss/lambda/event/subscribe/function.zip"
         "RssTriggerFunction:binaries/rss/lambda/event/trigger/function.zip"
-        "RssWriteFunction:binaries/rss/lambda/event/write/function.zip")
+        "RssWriteFunction:binaries/rss/lambda/event/write/function.zip"
+        "RssTranslateFunction:binaries/rss/lambda/event/translate/function.zip")
 
 # Update Lambda functions
 for FUNCTION in "${FUNCTIONs[@]}"; do
