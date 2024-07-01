@@ -1,12 +1,8 @@
 package main
 
 import (
-	"bytes"
-	"compress/gzip"
 	"context"
-	"encoding/base64"
 	"encoding/json"
-	"io"
 	"log/slog"
 	"os"
 
@@ -97,48 +93,23 @@ func cleansing(ctx context.Context, logger infrastructure.Logger, rssRepository 
 	return cleansingRss, nil
 }
 
-func getMessage(record events.SNSEventRecord) (message message.Write, err error) {
-	err = json.Unmarshal([]byte(record.SNS.Message), &message)
+func getMessage(record events.SNSEventRecord) (receiveMessage message.Write, err error) {
+	err = json.Unmarshal([]byte(record.SNS.Message), &receiveMessage)
 	if err != nil {
-		return message, err
+		return receiveMessage, err
 	}
 
-	if message.Compressed {
-		decompressedRssData, err := decompressAndDecodeData(message.Data)
+	if receiveMessage.Compressed {
+		decompressedRssData, err := message.DecodeAndDecompressData(receiveMessage.Data)
 		if err != nil {
-			return message, err
+			return message.Write{}, err
 		}
-
-		err = json.Unmarshal(decompressedRssData, &message.RssFeed)
-		if err != nil {
-			return message, err
-		}
-		message.Data = nil
-		message.Compressed = false
+		receiveMessage.RssFeed = decompressedRssData
+		receiveMessage.Data = nil
+		receiveMessage.Compressed = false
 	}
 
-	return message, nil
-}
-
-func decompressAndDecodeData(data []byte) ([]byte, error) {
-	decodedData, err := base64.StdEncoding.DecodeString(string(data))
-	if err != nil {
-		return nil, err
-	}
-
-	buffer := bytes.NewReader(decodedData)
-	gzipReader, err := gzip.NewReader(buffer)
-	if err != nil {
-		return nil, err
-	}
-	defer gzipReader.Close()
-
-	decompressedData, err := io.ReadAll(gzipReader)
-	if err != nil {
-		return nil, err
-	}
-
-	return decompressedData, nil
+	return receiveMessage, nil
 }
 
 func main() {
