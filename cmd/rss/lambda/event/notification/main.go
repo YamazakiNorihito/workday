@@ -96,12 +96,20 @@ func Core(ctx context.Context, logger infrastructure.Logger, rssRepository rss.I
 		return err
 	}
 
-	postMessage := makeMessage(modifyRss, func(item rss.Item) bool {
+	itemFilter := func(item rss.Item) bool {
 		result := now.Sub(item.PubDate) <= updateTimeThreshold
 		logger.Info(fmt.Sprintf("Checking item with PubDate: %s, Current time: %s, Update time threshold: %v, Result: %t",
 			item.PubDate.Format(time.RFC3339), now.Format(time.RFC3339), updateTimeThreshold, result))
 		return result
-	})
+	}
+
+	postMessage := makeMessage(modifyRss, itemFilter)
+
+	if postMessage == "" {
+		logger.Info("No message to send to Slack", "source", source)
+		return nil
+	}
+
 	respChannel, respTimestamp, err := slackSender.PostMessageContext(
 		ctx,
 		slack.MsgOptionText(postMessage, false),
@@ -117,7 +125,8 @@ func Core(ctx context.Context, logger infrastructure.Logger, rssRepository rss.I
 }
 
 func makeMessage(r rss.Rss, itemFilter func(item rss.Item) bool) string {
-	if len(r.Items) == 0 {
+	filteredItems := filterMap(r.Items, itemFilter)
+	if len(filteredItems) == 0 {
 		return ""
 	}
 
@@ -129,11 +138,7 @@ func makeMessage(r rss.Rss, itemFilter func(item rss.Item) bool) string {
 	messageBuilder.WriteString("\n\n*最新の記事:*\n")
 
 	i := 1
-	for _, item := range r.Items {
-		if itemFilter(item) == false {
-			continue
-		}
-
+	for _, item := range filteredItems {
 		truncatedDescription := truncate(item.Description)
 		messageBuilder.WriteString(fmt.Sprintf("%d. *記事タイトル:* <%s|%s>\n    *公開日:* %s\n    *概要:* %s\n    *カテゴリ:* %s\n\n",
 			i, item.Link, item.Title, item.PubDate.Format(time.RFC3339), truncatedDescription, strings.Join(item.Tags, ", ")))
@@ -141,6 +146,16 @@ func makeMessage(r rss.Rss, itemFilter func(item rss.Item) bool) string {
 	}
 
 	return messageBuilder.String()
+}
+
+func filterMap[K comparable, V any](m map[K]V, filterFunc func(V) bool) map[K]V {
+	result := make(map[K]V)
+	for k, v := range m {
+		if filterFunc(v) {
+			result[k] = v
+		}
+	}
+	return result
 }
 
 func truncate(s string) string {
