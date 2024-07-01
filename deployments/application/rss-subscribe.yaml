@@ -2,9 +2,9 @@ AWSTemplateFormatVersion: '2010-09-09'
 Parameters:
   LambdaRoleArn:
     Type: String
-  TopicArm:
+  TriggerTopicRssArn:
     Type: String
-  RssTranslateTopicArn:
+  OutPutTopicRssArn:
     Type: String
 Resources:
   FunctionStack:
@@ -25,7 +25,7 @@ Resources:
         LogGroup: !Ref LambdaLogGroup
       Environment:
         Variables:
-          RSS_TRANSLATE_ARN: !Ref RssTranslateTopicArn
+          OUTPUT_TOPIC_RSS_ARN: !Ref OutPutTopicRssArn
   LambdaLogGroup:
     Type: 'AWS::Logs::LogGroup'
     Properties:
@@ -34,7 +34,7 @@ Resources:
   SubscriptionStack:
     Type: "AWS::SNS::Subscription"
     Properties:
-      TopicArn: !Ref TopicArm
+      TopicArn: !Ref TriggerTopicRssArn
       Protocol: "lambda"
       Endpoint: !GetAtt FunctionStack.Arn
   LambdaPermission:
@@ -43,4 +43,4 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !GetAtt FunctionStack.Arn
       Principal: sns.amazonaws.com
-      SourceArn: !Ref TopicArm
+      SourceArn: !Ref TriggerTopicRssArn

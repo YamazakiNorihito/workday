@@ -24,7 +24,7 @@ func handler(ctx context.Context, event events.SNSEvent) error {
 	snsClient := cfg.NewSnsClient()
 	dynamodbClient := cfg.NewDynamodbClient()
 
-	snsTopicClient := awsConfig.NewSnsTopicClient(snsClient, os.Getenv("RSS_TRANSLATE_ARN"))
+	snsTopicClient := awsConfig.NewSnsTopicClient(snsClient, os.Getenv("OUTPUT_TOPIC_RSS_ARN"))
 	rssRepository := rss.NewDynamoDBRssRepository(dynamodbClient)
 
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
@@ -83,13 +83,6 @@ func Core(ctx context.Context, logger infrastructure.Logger, repository rss.IRss
 	if err != nil {
 		return rss.Rss{}, err
 	}
-
-	exists, existingRss := rss.Exists(ctx, repository, rssEntry)
-	if exists {
-		existingRss.SetLastBuildDate(rssEntry.LastBuildDate)
-		rssEntry = existingRss
-	}
-	logger.Info("RSS entry existence check", "exists", exists, "rssSource", rssEntry.Source)
 
 	for _, item := range feed.Items {
 		guid, err := getGuid(*item)

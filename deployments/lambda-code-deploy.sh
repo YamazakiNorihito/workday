@@ -5,7 +5,7 @@ set -euo pipefail
 # Directories
 SRC_DIR="./../cmd/rss/lambda/event"
 BIN_DIR="./binaries/rss/lambda/event"
-LAMBDA_DIRS=("notification" "subscribe" "trigger" "write" "translate")
+LAMBDA_DIRS=("notification" "subscribe" "trigger" "write" "translate" "clean")
 
 # Build and package functions
 for dir in "${LAMBDA_DIRS[@]}"; do
@@ -32,7 +32,8 @@ FUNCTIONs=("RssNotificationFunction:binaries/rss/lambda/event/notification/funct
         "RssSubscribeFunction:binaries/rss/lambda/event/subscribe/function.zip"
         "RssTriggerFunction:binaries/rss/lambda/event/trigger/function.zip"
         "RssWriteFunction:binaries/rss/lambda/event/write/function.zip"
-        "RssTranslateFunction:binaries/rss/lambda/event/translate/function.zip")
+        "RssTranslateFunction:binaries/rss/lambda/event/translate/function.zip"
+        "RssCleanFunction:binaries/rss/lambda/event/clean/function.zip")
 
 # Update Lambda functions
 for FUNCTION in "${FUNCTIONs[@]}"; do
