@@ -91,15 +91,8 @@ func Core(ctx context.Context, logger infrastructure.Logger, repository rss.IRss
 			continue
 		}
 
-		author := ""
-		if item.Author != nil {
-			if item.Author.Email != "" {
-				author = item.Author.Email
-			} else {
-				author = item.Author.Name
-			}
-		}
-		textDescription, err := ExtractTextFromHTML(item.Description)
+		author := getAuthor(*item)
+		textDescription, err := getDescription(*item)
 		if err != nil {
 			logger.Error("Failed to extract text from HTML content in RSS item description", "error", err, "itemTitle", item.Title)
 			continue
@@ -176,6 +169,25 @@ func getGuid(item gofeed.Item) (rss.Guid, error) {
 	return guid, nil
 }
 
+func getAuthor(item gofeed.Item) string {
+	if item.Author == nil {
+		return ""
+	}
+
+	if email := item.Author.Email; email != "" {
+		return email
+	}
+	return item.Author.Name
+}
+
+func getDescription(item gofeed.Item) (string, error) {
+	description := item.Description
+	if description == "" {
+		description = item.Content
+	}
+	return ExtractTextFromHTML(description)
+}
+
 func main() {
 	if os.Getenv("ENV") == "myhost" {
 		event := events.SNSEvent{
@@ -183,7 +195,7 @@ func main() {
 				{
 					SNS: events.SNSEntity{
 						MessageID: "12345",
-						Message:   `{"feed_url": "https://buildersbox.corp-sansan.com/rss"}`,
+						Message:   `{"feed_url": "https://www.ipa.go.jp/security/alert-rss.rdf"}`,
 					},
 				},
 			},
