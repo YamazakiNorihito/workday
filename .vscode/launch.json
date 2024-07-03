@@ -5,6 +5,17 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "RSS Subscribe DebugSetting",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${fileDirname}",
+            "env": {
+                "ENV" : "myhost",
+                "OUTPUT_TOPIC_RSS_ARN": "arn:aws:sns:us-east-1:000000000000:rss-write",
+            }
+        },
+        {
             "name": "Launch Package",
             "type": "go",
             "request": "launch",
