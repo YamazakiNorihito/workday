@@ -39,6 +39,16 @@
             }
         },
         {
+            "name": "RSS Write DebugSetting",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${fileDirname}",
+            "env": {
+                "ENV" : "myhost",
+            }
+        },
+        {
             "name": "Launch Package",
             "type": "go",
             "request": "launch",
