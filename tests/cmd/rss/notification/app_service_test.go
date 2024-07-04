@@ -6,38 +6,10 @@ import (
 	"time"
 
 	"github.com/YamazakiNorihito/workday/cmd/rss/lambda/event/notification/app_service"
-	"github.com/YamazakiNorihito/workday/internal/domain/metadata"
 	"github.com/YamazakiNorihito/workday/internal/domain/rss"
 	"github.com/YamazakiNorihito/workday/tests/helper"
 	"github.com/stretchr/testify/assert"
 )
-
-type spyRssRepository struct {
-	findBySourceFunc func(ctx context.Context, source string) (rss.Rss, error)
-	findItemsFunc    func(ctx context.Context, rss rss.Rss) (rss.Rss, error)
-}
-
-func (r *spyRssRepository) FindBySource(ctx context.Context, source string) (rss.Rss, error) {
-	if r.findBySourceFunc != nil {
-		return r.findBySourceFunc(ctx, source)
-	}
-	panic("findBySourceFunc is not implemented")
-}
-
-func (r *spyRssRepository) FindItems(ctx context.Context, rss rss.Rss) (rss.Rss, error) {
-	if r.findItemsFunc != nil {
-		return r.findItemsFunc(ctx, rss)
-	}
-	panic("findItemsFunc is not implemented")
-}
-
-func (r *spyRssRepository) FindItemsByPk(ctx context.Context, rss rss.Rss, guid rss.Guid) (rss.Rss, error) {
-	panic("FindItemsByPk called unexpectedly")
-}
-
-func (r *spyRssRepository) Save(ctx context.Context, rss rss.Rss, updateBy metadata.UserMeta) (rss.Rss, error) {
-	panic("Save called unexpectedly")
-}
 
 type call struct {
 	Text     string
@@ -56,21 +28,21 @@ func (s *spySlackChannelClient) PostMessageContext(ctx context.Context, text str
 func TestAppService_Notification(t *testing.T) {
 	t.Run("should notify Slack when new articles are added", func(t *testing.T) {
 		// Arrange
-		dummy_rss := getDummyRss(t)
+		test_rss := generatorTestRss(t)
 		ctx := context.Background()
 		logger := helper.MockLogger{}
-		repo := spyRssRepository{
-			findBySourceFunc: func(ctx context.Context, source string) (rss.Rss, error) {
+		repo := helper.SpyRssRepository{
+			FindBySourceFunc: func(ctx context.Context, source string) (rss.Rss, error) {
 				if source != "127.0.0.1:8080" {
 					panic("sourceLanguageCode is not 'en' as expected")
 				}
-				return dummy_rss, nil
+				return test_rss, nil
 			},
-			findItemsFunc: func(ctx context.Context, rss rss.Rss) (rss.Rss, error) {
-				if rss.ID.String() != dummy_rss.ID.String() {
+			FindItemsFunc: func(ctx context.Context, rss rss.Rss) (rss.Rss, error) {
+				if rss.ID.String() != test_rss.ID.String() {
 					panic("rss is not 'en' as expected")
 				}
-				return dummy_rss, nil
+				return test_rss, nil
 			},
 		}
 		slackChannelClient := spySlackChannelClient{}
@@ -108,11 +80,11 @@ func TestAppService_Notification(t *testing.T) {
 	})
 	t.Run("should notify Slack only for RSS feeds matching specified conditions", func(t *testing.T) {
 		// Arrange
-		dummy_rss := getDummyRss(t)
+		dummy_rss := generatorTestRss(t)
 		ctx := context.Background()
 		logger := helper.MockLogger{}
-		repo := spyRssRepository{
-			findBySourceFunc: func(ctx context.Context, source string) (rss.Rss, error) {
+		repo := helper.SpyRssRepository{
+			FindBySourceFunc: func(ctx context.Context, source string) (rss.Rss, error) {
 				if source != "127.0.0.1:8080" {
 					panic("sourceLanguageCode is not 'en' as expected")
 				}
@@ -136,17 +108,17 @@ func TestAppService_Notification(t *testing.T) {
 	})
 	t.Run("should notify Slack only for items matching specified conditions", func(t *testing.T) {
 		// Arrange
-		dummy_rss := getDummyRss(t)
+		dummy_rss := generatorTestRss(t)
 		ctx := context.Background()
 		logger := helper.MockLogger{}
-		repo := spyRssRepository{
-			findBySourceFunc: func(ctx context.Context, source string) (rss.Rss, error) {
+		repo := helper.SpyRssRepository{
+			FindBySourceFunc: func(ctx context.Context, source string) (rss.Rss, error) {
 				if source != "127.0.0.1:8080" {
 					panic("sourceLanguageCode is not 'en' as expected")
 				}
 				return dummy_rss, nil
 			},
-			findItemsFunc: func(ctx context.Context, rss rss.Rss) (rss.Rss, error) {
+			FindItemsFunc: func(ctx context.Context, rss rss.Rss) (rss.Rss, error) {
 				if rss.ID.String() != dummy_rss.ID.String() {
 					panic("rss is not 'en' as expected")
 				}
@@ -185,7 +157,7 @@ func TestAppService_Notification(t *testing.T) {
 	})
 }
 
-func getDummyRss(t *testing.T) rss.Rss {
+func generatorTestRss(t *testing.T) rss.Rss {
 	var dummy_rss rss.Rss
 	helper.MustSucceed(t, func() error {
 		var err error

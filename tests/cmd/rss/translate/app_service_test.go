@@ -45,28 +45,7 @@ func (r *spyTranslator) TranslateText(ctx context.Context, sourceLanguageCode st
 func TestAppService_Clean(t *testing.T) {
 	t.Run("Should return original description when item is in Japanese", func(t *testing.T) {
 		// Arrange
-		var dummy_rss rss.Rss
-		helper.MustSucceed(t, func() error {
-			var err error
-			dummy_rss, err = rss.New("ダミーニュースのフィード", "127.0.0.1:8080", "http://127.0.0.1:8080", "このフィードはダミーニュースを提供します。", "ja", time.Date(2024, time.July, 3, 13, 0, 0, 0, time.UTC))
-			if err != nil {
-				return err
-			}
-
-			dummy_item1, err := rss.NewItem(rss.Guid{Value: "http://www.example.com/dummy-guid1"}, "ダミー記事1", "http://www.example.com/dummy-article1", "これはダミー記事1の概要です。詳細はリンクをクリックしてください。", "item1@dummy.com", time.Date(2024, time.July, 3, 12, 0, 0, 0, time.UTC))
-			if err != nil {
-				return err
-			}
-			dummy_rss.AddOrUpdateItem(dummy_item1)
-
-			dummy_item2, err := rss.NewItem(rss.Guid{Value: "http://www.example.com/dummy-guid2"}, "ダミー記事2", "http://www.example.com/dummy-article2", "これはダミー記事2の概要です。詳細はリンクをクリックしてください。", "item2@dummy.com", time.Date(2024, time.July, 3, 12, 30, 0, 0, time.UTC))
-			if err != nil {
-				return err
-			}
-			dummy_rss.AddOrUpdateItem(dummy_item2)
-			return err
-		})
-
+		test_rss := GenerateJapaneseTestRss(t)
 		ctx := context.Background()
 		logger := helper.MockLogger{}
 		repo := spyFeedRepository{
@@ -77,13 +56,13 @@ func TestAppService_Clean(t *testing.T) {
 		translator := spyTranslator{}
 
 		// Act
-		act_rss, err := app_service.Translate(ctx, &logger, &translator, &repo, dummy_rss)
+		act_rss, err := app_service.Translate(ctx, &logger, &translator, &repo, test_rss)
 
 		// Assert
 		assert.NoError(t, err)
 
 		assert.NotEmpty(t, act_rss.ID)
-		assert.Equal(t, dummy_rss.ID, act_rss.ID)
+		assert.Equal(t, test_rss.ID, act_rss.ID)
 		assert.Equal(t, "ダミーニュースのフィード", act_rss.Title)
 		assert.Equal(t, "127.0.0.1:8080", act_rss.Source)
 		assert.Equal(t, "http://127.0.0.1:8080", act_rss.Link)
@@ -115,28 +94,7 @@ func TestAppService_Clean(t *testing.T) {
 	})
 	t.Run("Should return original description when translation setting is unset", func(t *testing.T) {
 		// Arrange
-		var dummy_rss rss.Rss
-		helper.MustSucceed(t, func() error {
-			var err error
-			dummy_rss, err = rss.New("ダミーニュースのフィード", "127.0.0.1:8080", "http://127.0.0.1:8080", "このフィードはダミーニュースを提供します。", "ja", time.Date(2024, time.July, 3, 13, 0, 0, 0, time.UTC))
-			if err != nil {
-				return err
-			}
-
-			dummy_item1, err := rss.NewItem(rss.Guid{Value: "http://www.example.com/dummy-guid1"}, "ダミー記事1", "http://www.example.com/dummy-article1", "これはダミー記事1の概要です。詳細はリンクをクリックしてください。", "item1@dummy.com", time.Date(2024, time.July, 3, 12, 0, 0, 0, time.UTC))
-			if err != nil {
-				return err
-			}
-			dummy_rss.AddOrUpdateItem(dummy_item1)
-
-			dummy_item2, err := rss.NewItem(rss.Guid{Value: "http://www.example.com/dummy-guid2"}, "ダミー記事2", "http://www.example.com/dummy-article2", "これはダミー記事2の概要です。詳細はリンクをクリックしてください。", "item2@dummy.com", time.Date(2024, time.July, 3, 12, 30, 0, 0, time.UTC))
-			if err != nil {
-				return err
-			}
-			dummy_rss.AddOrUpdateItem(dummy_item2)
-			return err
-		})
-
+		test_rss := GenerateJapaneseTestRss(t)
 		ctx := context.Background()
 		logger := helper.MockLogger{}
 		repo := spyFeedRepository{
@@ -147,13 +105,13 @@ func TestAppService_Clean(t *testing.T) {
 		translator := spyTranslator{}
 
 		// Act
-		act_rss, err := app_service.Translate(ctx, &logger, &translator, &repo, dummy_rss)
+		act_rss, err := app_service.Translate(ctx, &logger, &translator, &repo, test_rss)
 
 		// Assert
 		assert.NoError(t, err)
 
 		assert.NotEmpty(t, act_rss.ID)
-		assert.Equal(t, dummy_rss.ID, act_rss.ID)
+		assert.Equal(t, test_rss.ID, act_rss.ID)
 		assert.Equal(t, "ダミーニュースのフィード", act_rss.Title)
 		assert.Equal(t, "127.0.0.1:8080", act_rss.Source)
 		assert.Equal(t, "http://127.0.0.1:8080", act_rss.Link)
@@ -185,10 +143,10 @@ func TestAppService_Clean(t *testing.T) {
 	})
 	t.Run("Should translate and return Japanese description when original is in a foreign language", func(t *testing.T) {
 		// Arrange
-		var dummy_rss rss.Rss
+		var test_rss rss.Rss
 		helper.MustSucceed(t, func() error {
 			var err error
-			dummy_rss, err = rss.New("Dummy News Feed", "127.0.0.1:8080", "http://127.0.0.1:8080", "This feed provides dummy news.", "en", time.Date(2024, time.July, 3, 13, 0, 0, 0, time.UTC))
+			test_rss, err = rss.New("Dummy News Feed", "127.0.0.1:8080", "http://127.0.0.1:8080", "This feed provides dummy news.", "en", time.Date(2024, time.July, 3, 13, 0, 0, 0, time.UTC))
 			if err != nil {
 				return err
 			}
@@ -197,13 +155,13 @@ func TestAppService_Clean(t *testing.T) {
 			if err != nil {
 				return err
 			}
-			dummy_rss.AddOrUpdateItem(dummy_item1)
+			test_rss.AddOrUpdateItem(dummy_item1)
 
 			dummy_item2, err := rss.NewItem(rss.Guid{Value: "http://www.example.com/dummy-guid2"}, "Dummy Article 2", "http://www.example.com/dummy-article2", "Here is a summary of dummy article 2. Please click the link for more details.", "item2@dummy.com", time.Date(2024, time.July, 3, 12, 30, 0, 0, time.UTC))
 			if err != nil {
 				return err
 			}
-			dummy_rss.AddOrUpdateItem(dummy_item2)
+			test_rss.AddOrUpdateItem(dummy_item2)
 			return err
 		})
 
@@ -239,12 +197,12 @@ func TestAppService_Clean(t *testing.T) {
 		}
 
 		// Act
-		act_rss, err := app_service.Translate(ctx, &logger, &translator, &repo, dummy_rss)
+		act_rss, err := app_service.Translate(ctx, &logger, &translator, &repo, test_rss)
 
 		// Assert
 		assert.NoError(t, err)
 
-		assert.Equal(t, dummy_rss.ID, act_rss.ID)
+		assert.Equal(t, test_rss.ID, act_rss.ID)
 		assert.Equal(t, "Dummy News Feed", act_rss.Title)
 		assert.Equal(t, "127.0.0.1:8080", act_rss.Source)
 		assert.Equal(t, "http://127.0.0.1:8080", act_rss.Link)
@@ -342,6 +300,32 @@ func TestAppService_Publish(t *testing.T) {
 
 		assert.JSONEq(t, expectedJSON, publisher.Messages[0])
 	})
+}
+
+func GenerateJapaneseTestRss(t *testing.T) rss.Rss {
+	var dummy_rss rss.Rss
+	helper.MustSucceed(t, func() error {
+		var err error
+		dummy_rss, err = rss.New("ダミーニュースのフィード", "127.0.0.1:8080", "http://127.0.0.1:8080", "このフィードはダミーニュースを提供します。", "ja", time.Date(2024, time.July, 3, 13, 0, 0, 0, time.UTC))
+		if err != nil {
+			return err
+		}
+
+		dummy_item1, err := rss.NewItem(rss.Guid{Value: "http://www.example.com/dummy-guid1"}, "ダミー記事1", "http://www.example.com/dummy-article1", "これはダミー記事1の概要です。詳細はリンクをクリックしてください。", "item1@dummy.com", time.Date(2024, time.July, 3, 12, 0, 0, 0, time.UTC))
+		if err != nil {
+			return err
+		}
+		dummy_rss.AddOrUpdateItem(dummy_item1)
+
+		dummy_item2, err := rss.NewItem(rss.Guid{Value: "http://www.example.com/dummy-guid2"}, "ダミー記事2", "http://www.example.com/dummy-article2", "これはダミー記事2の概要です。詳細はリンクをクリックしてください。", "item2@dummy.com", time.Date(2024, time.July, 3, 12, 30, 0, 0, time.UTC))
+		if err != nil {
+			return err
+		}
+		dummy_rss.AddOrUpdateItem(dummy_item2)
+		return err
+	})
+
+	return dummy_rss
 }
 
 func deepCopy(src, dest interface{}) error {

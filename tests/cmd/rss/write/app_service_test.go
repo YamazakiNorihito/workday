@@ -13,68 +13,30 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type spyRssRepository struct {
-	findBySourceFunc func(ctx context.Context, source string) (rss.Rss, error)
-	findItemFunc     func(ctx context.Context, rss rss.Rss, guid rss.Guid) (rss.Rss, error)
-}
-
-func (r *spyRssRepository) FindBySource(ctx context.Context, source string) (rss.Rss, error) {
-	if r.findBySourceFunc != nil {
-		return r.findBySourceFunc(ctx, source)
-	}
-	panic("findBySourceFunc is not implemented")
-}
-
-func (r *spyRssRepository) FindItems(ctx context.Context, rss rss.Rss) (rss.Rss, error) {
-	panic("findItemsFunc is not implemented")
-}
-
-func (r *spyRssRepository) FindItemsByPk(ctx context.Context, rss rss.Rss, guid rss.Guid) (rss.Rss, error) {
-	if r.findItemFunc != nil {
-		return r.findItemFunc(ctx, rss, guid)
-	}
-	panic("FindItemsByPk called unexpectedly")
-}
-
-func (r *spyRssRepository) Save(ctx context.Context, rss rss.Rss, updateBy metadata.UserMeta) (rss.Rss, error) {
-	panic("Save called unexpectedly")
-}
-
 func TestAppService_Clean(t *testing.T) {
 	t.Run("should successfully return the original RSS feed for new RSS feed", func(t *testing.T) {
 		// Arrange
-		var dummy_rss rss.Rss
-		helper.MustSucceed(t, func() error {
-			var err error
-			dummy_rss, err = rss.New("ダミーニュースのフィード", "127.0.0.1:8080", "http://127.0.0.1:8080", "このフィードはダミーニュースを提供します。", "ja", time.Date(2024, time.July, 3, 13, 0, 0, 0, time.UTC))
-			if err != nil {
-				return err
-			}
-
-			dummy_item1, err := rss.NewItem(rss.Guid{Value: "http://www.example.com/dummy-guid1"}, "ダミー記事1", "http://www.example.com/dummy-article1", "これはダミー記事1の概要です。詳細はリンクをクリックしてください。", "item1@dummy.com", time.Date(2024, time.July, 3, 12, 0, 0, 0, time.UTC))
-			if err != nil {
-				return err
-			}
-			dummy_rss.AddOrUpdateItem(dummy_item1)
-
-			dummy_item2, err := rss.NewItem(rss.Guid{Value: "http://www.example.com/dummy-guid2"}, "ダミー記事2", "http://www.example.com/dummy-article2", "これはダミー記事2の概要です。詳細はリンクをクリックしてください。", "item2@dummy.com", time.Date(2024, time.July, 3, 12, 30, 0, 0, time.UTC))
-			if err != nil {
-				return err
-			}
-			dummy_rss.AddOrUpdateItem(dummy_item2)
-			return err
-		})
-
+		test_rss := generatorTestRss(t)
 		ctx := context.Background()
 		logger := helper.MockLogger{}
-		repo := spyRssRepository{
-			findBySourceFunc: func(ctx context.Context, source string) (rss.Rss, error) {
+		repo := helper.SpyRssRepository{
+			FindBySourceFunc: func(ctx context.Context, source string) (rss.Rss, error) {
 				return rss.Rss{}, nil
+			},
+			SaveFunc: func(ctx context.Context, entryRss rss.Rss, updateBy metadata.UserMeta) (rss.Rss, error) {
+				var copy rss.Rss
+				helper.MustSucceed(t, func() error { return deepCopy(entryRss, &copy) })
+
+				copy.CreatedBy = metadata.CreateBy(updateBy)
+				copy.CreatedAt = metadata.CreateAt(time.Date(2024, time.July, 3, 14, 0, 0, 0, time.UTC))
+				copy.UpdatedBy = metadata.UpdateBy(updateBy)
+				copy.UpdatedAt = metadata.UpdateAt(time.Date(2024, time.July, 3, 14, 0, 0, 0, time.UTC))
+				return copy, nil
 			},
 		}
 
 		// Act
-		act_rss, err := app_service.Write(ctx, &logger, &repo, dummy_rss)
+		act_rss, err := app_service.Write(ctx, &logger, &repo, test_rss)
 
 		// Assert
 		assert.NoError(t, err)
@@ -86,6 +48,11 @@ func TestAppService_Clean(t *testing.T) {
 		assert.Equal(t, "このフィードはダミーニュースを提供します。", act_rss.Description)
 		assert.Equal(t, "ja", act_rss.Language)
 		assert.Equal(t, time.Date(2024, time.July, 3, 13, 0, 0, 0, time.UTC), act_rss.LastBuildDate)
+
+		assert.Equal(t, metadata.CreateBy(metadata.UserMeta{ID: "127.0.0.1:8080", Name: "127.0.0.1:8080"}), act_rss.CreatedBy)
+		assert.Equal(t, time.Date(2024, time.July, 3, 14, 0, 0, 0, time.UTC), act_rss.CreatedAt)
+		assert.Equal(t, metadata.UpdateBy(metadata.UserMeta{ID: "127.0.0.1:8080", Name: "127.0.0.1:8080"}), act_rss.UpdatedBy)
+		assert.Equal(t, time.Date(2024, time.July, 3, 14, 0, 0, 0, time.UTC), act_rss.UpdatedAt)
 
 		assert.Len(t, act_rss.Items, 2)
 		// item1
@@ -109,6 +76,32 @@ func TestAppService_Clean(t *testing.T) {
 			assert.Equal(t, "item2@dummy.com", item2.Author)
 		}
 	})
+}
+
+func generatorTestRss(t *testing.T) rss.Rss {
+	var dummy_rss rss.Rss
+	helper.MustSucceed(t, func() error {
+		var err error
+		dummy_rss, err = rss.New("ダミーニュースのフィード", "127.0.0.1:8080", "http://127.0.0.1:8080", "このフィードはダミーニュースを提供します。", "ja", time.Date(2024, time.July, 3, 13, 0, 0, 0, time.UTC))
+		if err != nil {
+			return err
+		}
+
+		dummy_item1, err := rss.NewItem(rss.Guid{Value: "http://www.example.com/dummy-guid1"}, "ダミー記事1", "http://www.example.com/dummy-article1", "これはダミー記事1の概要です。詳細はリンクをクリックしてください。", "item1@dummy.com", time.Date(2024, time.July, 3, 12, 0, 0, 0, time.UTC))
+		if err != nil {
+			return err
+		}
+		dummy_rss.AddOrUpdateItem(dummy_item1)
+
+		dummy_item2, err := rss.NewItem(rss.Guid{Value: "http://www.example.com/dummy-guid2"}, "ダミー記事2", "http://www.example.com/dummy-article2", "これはダミー記事2の概要です。詳細はリンクをクリックしてください。", "item2@dummy.com", time.Date(2024, time.July, 3, 12, 30, 0, 0, time.UTC))
+		if err != nil {
+			return err
+		}
+		dummy_rss.AddOrUpdateItem(dummy_item2)
+		return err
+	})
+
+	return dummy_rss
 }
 
 func deepCopy(src, dest interface{}) error {
