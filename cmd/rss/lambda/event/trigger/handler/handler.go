@@ -32,6 +32,7 @@ func (r *feedRepository) GetFeedURLs() []string {
 		"https://www.ipa.go.jp/security/alert-rss.rdf",
 		"https://feed.infoq.com",
 		"https://techcrunch.com/feed",
+		"https://www.publickey1.jp/atom.xml",
 	}
 }
 
