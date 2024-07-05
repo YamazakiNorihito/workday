@@ -47,9 +47,9 @@ func Handler(ctx context.Context, event events.DynamoDBEvent) error {
 		now := time.Now()
 		conditions := app_service.RssConditions{
 			Target: func(r rss.Rss) bool {
-				isOutdated := now.Sub(r.LastBuildDate) > updateTimeThreshold
-				logger.Info("The LastBuildDate is not within the last update time threshold. Skipping processing.", "ID", r.ID, "UpdateTimeThreshold", updateTimeThreshold, "isOutdated", isOutdated)
-				return isOutdated
+				shouldProcess := now.Sub(r.LastBuildDate) <= updateTimeThreshold
+				logger.Info("The LastBuildDate is not within the last update time threshold. Skipping processing.", "ID", r.ID, "UpdateTimeThreshold", updateTimeThreshold, "isOutdated", shouldProcess)
+				return shouldProcess
 			},
 			ItemFilter: func(item rss.Item) bool {
 				result := now.Sub(item.PubDate) <= updateTimeThreshold
