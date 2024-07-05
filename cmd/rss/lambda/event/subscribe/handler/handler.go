@@ -12,6 +12,7 @@ import (
 	"github.com/YamazakiNorihito/workday/cmd/rss/lambda/event/subscribe/app_service"
 	"github.com/YamazakiNorihito/workday/internal/infrastructure"
 	"github.com/YamazakiNorihito/workday/pkg/rss/message"
+	"github.com/YamazakiNorihito/workday/pkg/rss/publisher"
 	"github.com/aws/aws-lambda-go/events"
 )
 
@@ -22,6 +23,7 @@ func Handler(ctx context.Context, event events.SNSEvent) error {
 	snsClient := cfg.NewSnsClient()
 
 	snsTopicClient := awsConfig.NewSnsTopicClient(snsClient, os.Getenv("OUTPUT_TOPIC_RSS_ARN"))
+	publisher := publisher.NewWriterMessagePublisher(snsTopicClient)
 
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	logger.Info("SNS Event", "event", shared.SnsEventToJson(event))
@@ -29,7 +31,7 @@ func Handler(ctx context.Context, event events.SNSEvent) error {
 	httpClient := &http.Client{}
 	executer := func(ctx context.Context, logger infrastructure.Logger, feedURL string) error {
 		repository := app_service.NewFeedRepository(httpClient, feedURL)
-		return app_service.Execute(ctx, logger, &repository, snsTopicClient)
+		return app_service.Execute(ctx, logger, &repository, *publisher)
 	}
 
 	for _, record := range event.Records {

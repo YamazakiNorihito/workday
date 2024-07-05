@@ -56,3 +56,11 @@ aws dynamodb update-table --table-name User --stream-specification StreamEnabled
 ```bash
 aws dynamodb describe-table --table-name User --endpoint-url http://localhost:8000 --region us-west-2
 ```
+
+## UT
+
+### 全てのUTを実行コマンド
+
+```bash
+go test -v ./...
+```

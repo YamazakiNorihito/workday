@@ -6,14 +6,15 @@ import (
 	"time"
 
 	"github.com/YamazakiNorihito/workday/cmd/rss/lambda/event/trigger/app_service"
+	"github.com/YamazakiNorihito/workday/pkg/rss/publisher"
 	"github.com/YamazakiNorihito/workday/pkg/throttle"
 	"github.com/YamazakiNorihito/workday/tests/helper"
 	"github.com/stretchr/testify/assert"
 )
 
-type spyRssWritePublisher struct{ Messages []string }
+type spyMessageClient struct{ Messages []string }
 
-func (r *spyRssWritePublisher) Publish(ctx context.Context, message string) error {
+func (r *spyMessageClient) Publish(ctx context.Context, message string) error {
 	r.Messages = append(r.Messages, message)
 	return nil
 }
@@ -42,7 +43,8 @@ func TestAppService_Execute(t *testing.T) {
 		// Arrange
 		ctx := context.Background()
 		logger := helper.MockLogger{}
-		rssWritePublisher := spyRssWritePublisher{}
+		messageClient := spyMessageClient{}
+		subscribeMessagePublisher := publisher.NewSubscribeMessagePublisher(&messageClient)
 		throttle := throttle.Config{
 			BatchSize: 1,
 			Sleep:     func() { time.Sleep(1 * time.Microsecond) },
@@ -50,14 +52,12 @@ func TestAppService_Execute(t *testing.T) {
 		feedRepository := spyFeedRepository{}
 
 		// Act
-		err := app_service.Execute(ctx, &logger, &rssWritePublisher, throttle, &feedRepository)
+		err := app_service.Trigger(ctx, &logger, *subscribeMessagePublisher, throttle, &feedRepository)
 
 		// Assert
 		assert.NoError(t, err)
-
-		assert.Len(t, rssWritePublisher.Messages, 12)
-
-		assert.ElementsMatch(t, rssWritePublisher.Messages, []string{
+		assert.Len(t, messageClient.Messages, 12)
+		assert.ElementsMatch(t, messageClient.Messages, []string{
 			"{\"feed_url\":\"https://azure.microsoft.com/ja-jp/blog/feed/\"}",
 			"{\"feed_url\":\"https://aws.amazon.com/jp/blogs/news/feed/\"}",
 			"{\"feed_url\":\"https://developers-jp.googleblog.com/atom.xml\"}",
@@ -90,7 +90,8 @@ func TestAppService_Execute(t *testing.T) {
 				// Arrange
 				ctx := context.Background()
 				logger := helper.MockLogger{}
-				rssWritePublisher := spyRssWritePublisher{}
+				messageClient := spyMessageClient{}
+				subscribeMessagePublisher := publisher.NewSubscribeMessagePublisher(&messageClient)
 				actSleepCount := 0
 				throttle := throttle.Config{
 					BatchSize: tc.batchSize,
@@ -102,7 +103,7 @@ func TestAppService_Execute(t *testing.T) {
 				feedRepository := spyFeedRepository{}
 
 				// Act
-				err := app_service.Execute(ctx, &logger, &rssWritePublisher, throttle, &feedRepository)
+				err := app_service.Execute(ctx, &logger, *subscribeMessagePublisher, throttle, &feedRepository)
 
 				// Assert
 				assert.NoError(t, err)
@@ -111,7 +112,7 @@ func TestAppService_Execute(t *testing.T) {
 				// that the Sleep function is called the expected number of times based on
 				// the specified batch size.
 				assert.Equal(t, tc.expectedSleepCount, actSleepCount)
-				assert.ElementsMatch(t, rssWritePublisher.Messages, []string{
+				assert.ElementsMatch(t, messageClient.Messages, []string{
 					"{\"feed_url\":\"https://azure.microsoft.com/ja-jp/blog/feed/\"}",
 					"{\"feed_url\":\"https://aws.amazon.com/jp/blogs/news/feed/\"}",
 					"{\"feed_url\":\"https://developers-jp.googleblog.com/atom.xml\"}",

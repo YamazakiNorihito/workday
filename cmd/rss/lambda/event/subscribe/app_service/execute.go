@@ -2,13 +2,11 @@ package app_service
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
-	"github.com/YamazakiNorihito/workday/cmd/rss/lambda/event/shared"
 	"github.com/YamazakiNorihito/workday/internal/domain/rss"
 	"github.com/YamazakiNorihito/workday/internal/infrastructure"
-	"github.com/YamazakiNorihito/workday/pkg/rss/message"
+	"github.com/YamazakiNorihito/workday/pkg/rss/publisher"
 	"github.com/mmcdole/gofeed"
 )
 
@@ -16,13 +14,13 @@ type FeedParser interface {
 	ParseURLWithContext(feedURL string, ctx context.Context) (feed *gofeed.Feed, err error)
 }
 
-func Execute(ctx context.Context, logger infrastructure.Logger, feedRepository *FeedRepository, publisher shared.Publisher) error {
+func Execute(ctx context.Context, logger infrastructure.Logger, feedRepository *FeedRepository, publisher publisher.WriterMessagePublisher) error {
 	entryRss, err := Subscribe(ctx, logger, feedRepository)
 	if err != nil {
 		return err
 	}
 
-	err = Publish(ctx, publisher, entryRss)
+	err = publisher.Publish(ctx, entryRss)
 	if err != nil {
 		return err
 	}
@@ -71,18 +69,4 @@ func Subscribe(ctx context.Context, logger infrastructure.Logger, feedRepository
 	}
 
 	return rssEntry, nil
-}
-
-func Publish(ctx context.Context, publisher shared.Publisher, rssEntry rss.Rss) error {
-	writeMessage, err := message.NewWriteMessage(rssEntry)
-	if err != nil {
-		return err
-	}
-
-	rssJson, _ := json.Marshal(writeMessage)
-	err = publisher.Publish(ctx, string(rssJson))
-	if err != nil {
-		return err
-	}
-	return nil
 }
