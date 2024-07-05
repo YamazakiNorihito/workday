@@ -12,6 +12,7 @@ import (
 	"github.com/YamazakiNorihito/workday/internal/domain/rss"
 	"github.com/YamazakiNorihito/workday/internal/infrastructure"
 	"github.com/YamazakiNorihito/workday/pkg/rss/message"
+	"github.com/YamazakiNorihito/workday/pkg/rss/publisher"
 	"github.com/aws/aws-lambda-go/events"
 )
 
@@ -37,6 +38,7 @@ func Handler(ctx context.Context, event events.SNSEvent) error {
 	translateClient := cfg.NewTranslateClient()
 
 	snsTopicClient := awsConfig.NewSnsTopicClient(snsClient, os.Getenv("OUTPUT_TOPIC_RSS_ARN"))
+	publisher := publisher.NewWriterMessagePublisher(snsTopicClient)
 	easyTranslateClient := awsConfig.NewTranslateClient(translateClient)
 
 	feedProvider := feedRepository{}
@@ -45,7 +47,7 @@ func Handler(ctx context.Context, event events.SNSEvent) error {
 	logger.Info("SNS Event", "event", shared.SnsEventToJson(event))
 
 	executer := func(ctx context.Context, logger infrastructure.Logger, rssEntry rss.Rss) error {
-		return app_service.Execute(ctx, logger, easyTranslateClient, &feedProvider, snsTopicClient, rssEntry)
+		return app_service.Execute(ctx, logger, easyTranslateClient, &feedProvider, *publisher, rssEntry)
 	}
 
 	for _, record := range event.Records {

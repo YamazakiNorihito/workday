@@ -11,6 +11,7 @@ import (
 	awsConfig "github.com/YamazakiNorihito/workday/cmd/rss/lambda/event/shared/aws_config"
 	"github.com/YamazakiNorihito/workday/cmd/rss/lambda/event/trigger/app_service"
 	"github.com/YamazakiNorihito/workday/internal/infrastructure"
+	"github.com/YamazakiNorihito/workday/pkg/rss/publisher"
 	"github.com/YamazakiNorihito/workday/pkg/throttle"
 	"github.com/aws/aws-lambda-go/events"
 )
@@ -40,6 +41,7 @@ func Handler(ctx context.Context, event events.EventBridgeEvent) error {
 	cfg := awsConfig.LoadConfig(ctx)
 	snsClient := cfg.NewSnsClient()
 	snsTopicClient := awsConfig.NewSnsTopicClient(snsClient, os.Getenv("OUTPUT_TOPIC_RSS_ARN"))
+	publisher := publisher.NewSubscribeMessagePublisher(snsTopicClient)
 
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil)).With("EventBridgeID", event.ID)
 	logger.Info("EventBridgeEvent Event", "event", shared.EventBridgeEventToJson(event))
@@ -56,7 +58,7 @@ func Handler(ctx context.Context, event events.EventBridgeEvent) error {
 	feedProvider := feedRepository{}
 
 	executer := func(ctx context.Context, logger infrastructure.Logger) error {
-		return app_service.Execute(ctx, logger, snsTopicClient, throttleConfig, &feedProvider)
+		return app_service.Execute(ctx, logger, *publisher, throttleConfig, &feedProvider)
 	}
 
 	err = processRecord(ctx, logger, event, executer)

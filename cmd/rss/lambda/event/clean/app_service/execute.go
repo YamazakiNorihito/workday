@@ -2,21 +2,19 @@ package app_service
 
 import (
 	"context"
-	"encoding/json"
 
-	"github.com/YamazakiNorihito/workday/cmd/rss/lambda/event/shared"
 	"github.com/YamazakiNorihito/workday/internal/domain/rss"
 	"github.com/YamazakiNorihito/workday/internal/infrastructure"
-	"github.com/YamazakiNorihito/workday/pkg/rss/message"
+	"github.com/YamazakiNorihito/workday/pkg/rss/publisher"
 )
 
-func Execute(ctx context.Context, logger infrastructure.Logger, rssRepository rss.IRssRepository, rssWritePublisher shared.Publisher, rssEntry rss.Rss) error {
+func Execute(ctx context.Context, logger infrastructure.Logger, rssRepository rss.IRssRepository, publisher publisher.WriterMessagePublisher, rssEntry rss.Rss) error {
 	cleansingRss, err := Clean(ctx, logger, rssRepository, rssEntry)
 	if err != nil {
 		return err
 	}
 
-	err = Publish(ctx, rssWritePublisher, cleansingRss)
+	err = publisher.Publish(ctx, cleansingRss)
 	if err != nil {
 		return err
 	}
@@ -55,18 +53,4 @@ func Clean(ctx context.Context, logger infrastructure.Logger, rssRepository rss.
 	}
 
 	return cleansingRss, nil
-}
-
-func Publish(ctx context.Context, rssWritePublisher shared.Publisher, rssEntry rss.Rss) error {
-	writeMessage, err := message.NewWriteMessage(rssEntry)
-	if err != nil {
-		return err
-	}
-
-	rssJson, _ := json.Marshal(writeMessage)
-	err = rssWritePublisher.Publish(ctx, string(rssJson))
-	if err != nil {
-		return err
-	}
-	return nil
 }
