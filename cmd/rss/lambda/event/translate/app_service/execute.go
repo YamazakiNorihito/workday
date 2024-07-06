@@ -10,7 +10,7 @@ import (
 )
 
 type FeedLanguageProvider interface {
-	GetSourceLanguage(ctx context.Context, source string) (string, bool)
+	GetSourceLanguage(ctx context.Context, logger infrastructure.Logger, source string) (string, bool)
 }
 
 func Execute(ctx context.Context, logger infrastructure.Logger, translator shared.Translator, feedLanguageProvider FeedLanguageProvider, publisher publisher.WriterMessagePublisher, rssEntry rss.Rss) error {
@@ -28,7 +28,7 @@ func Execute(ctx context.Context, logger infrastructure.Logger, translator share
 }
 
 func Translate(ctx context.Context, logger infrastructure.Logger, translator shared.Translator, feedLanguageProvider FeedLanguageProvider, rssEntry rss.Rss) (rss.Rss, error) {
-	sourceLanguageCode, ok := feedLanguageProvider.GetSourceLanguage(ctx, rssEntry.Source)
+	sourceLanguageCode, ok := feedLanguageProvider.GetSourceLanguage(ctx, logger, rssEntry.Source)
 	if ok == false || sourceLanguageCode == "ja" {
 		logger.Warn("翻訳対象外のためSkipします", "rssEntry.Source", rssEntry.Source)
 		return rssEntry, nil

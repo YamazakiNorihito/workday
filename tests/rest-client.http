@@ -126,3 +126,12 @@ Content-Type: application/json
   "feed_url": "https://techblog.lycorp.co.jp/ja/feed/index.xml",
   "source_language_code": "ja"
 }
+
+### create
+POST {{base_uri}}/api/v1/rss
+Content-Type: application/json
+
+{
+  "feed_url": "https://stackoverflow.blog/feed/",
+  "source_language_code": "en"
+}

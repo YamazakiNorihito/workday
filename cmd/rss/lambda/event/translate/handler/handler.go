@@ -20,14 +20,15 @@ type feedProvider struct {
 	repo *rss.DynamoDBRssRepository
 }
 
-func (r *feedProvider) GetSourceLanguage(ctx context.Context, source string) (sourceLanguageCode string, ok bool) {
+func (r *feedProvider) GetSourceLanguage(ctx context.Context, logger infrastructure.Logger, source string) (sourceLanguageCode string, ok bool) {
 	feeds, err := r.repo.FindAll(ctx)
 	if err != nil {
+		logger.Warn("Failed to retrieve feeds from repository", "error", err)
 		return "", false
 	}
 	languageFeedMap := make(map[string]string)
 	for _, feed := range feeds {
-		languageFeedMap[feed.Link] = feed.Language
+		languageFeedMap[feed.Source] = feed.Language
 	}
 
 	sourceLanguageCode, ok = languageFeedMap[source]

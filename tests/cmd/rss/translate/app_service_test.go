@@ -8,17 +8,18 @@ import (
 
 	"github.com/YamazakiNorihito/workday/cmd/rss/lambda/event/translate/app_service"
 	"github.com/YamazakiNorihito/workday/internal/domain/rss"
+	"github.com/YamazakiNorihito/workday/internal/infrastructure"
 	"github.com/YamazakiNorihito/workday/tests/helper"
 	"github.com/stretchr/testify/assert"
 )
 
 type spyFeedRepository struct {
-	getSourceLanguageFunc func(ctx context.Context, source string) (sourceLanguageCode string, ok bool)
+	getSourceLanguageFunc func(ctx context.Context, logger infrastructure.Logger, source string) (sourceLanguageCode string, ok bool)
 }
 
-func (r *spyFeedRepository) GetSourceLanguage(ctx context.Context, source string) (sourceLanguageCode string, ok bool) {
+func (r *spyFeedRepository) GetSourceLanguage(ctx context.Context, logger infrastructure.Logger, source string) (sourceLanguageCode string, ok bool) {
 	if r.getSourceLanguageFunc != nil {
-		return r.getSourceLanguageFunc(ctx, source)
+		return r.getSourceLanguageFunc(ctx, logger, source)
 	}
 	panic("getSourceLanguageFunc is not implemented")
 }
@@ -41,7 +42,7 @@ func TestAppService_Clean(t *testing.T) {
 		ctx := context.Background()
 		logger := helper.MockLogger{}
 		repo := spyFeedRepository{
-			getSourceLanguageFunc: func(ctx context.Context, source string) (sourceLanguageCode string, ok bool) {
+			getSourceLanguageFunc: func(ctx context.Context, logger infrastructure.Logger, source string) (sourceLanguageCode string, ok bool) {
 				return "ja", true
 			},
 		}
@@ -90,7 +91,7 @@ func TestAppService_Clean(t *testing.T) {
 		ctx := context.Background()
 		logger := helper.MockLogger{}
 		repo := spyFeedRepository{
-			getSourceLanguageFunc: func(ctx context.Context, source string) (sourceLanguageCode string, ok bool) {
+			getSourceLanguageFunc: func(ctx context.Context, logger infrastructure.Logger, source string) (sourceLanguageCode string, ok bool) {
 				return "", false
 			},
 		}
@@ -160,7 +161,7 @@ func TestAppService_Clean(t *testing.T) {
 		ctx := context.Background()
 		logger := helper.MockLogger{}
 		repo := spyFeedRepository{
-			getSourceLanguageFunc: func(ctx context.Context, source string) (sourceLanguageCode string, ok bool) {
+			getSourceLanguageFunc: func(ctx context.Context, logger infrastructure.Logger, source string) (sourceLanguageCode string, ok bool) {
 				return "en", true
 			},
 		}
