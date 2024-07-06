@@ -13,12 +13,12 @@ import (
 )
 
 type spyFeedRepository struct {
-	getSourceLanguageFunc func(source string) (sourceLanguageCode string, ok bool)
+	getSourceLanguageFunc func(ctx context.Context, source string) (sourceLanguageCode string, ok bool)
 }
 
-func (r *spyFeedRepository) GetSourceLanguage(source string) (sourceLanguageCode string, ok bool) {
+func (r *spyFeedRepository) GetSourceLanguage(ctx context.Context, source string) (sourceLanguageCode string, ok bool) {
 	if r.getSourceLanguageFunc != nil {
-		return r.getSourceLanguageFunc(source)
+		return r.getSourceLanguageFunc(ctx, source)
 	}
 	panic("getSourceLanguageFunc is not implemented")
 }
@@ -41,7 +41,7 @@ func TestAppService_Clean(t *testing.T) {
 		ctx := context.Background()
 		logger := helper.MockLogger{}
 		repo := spyFeedRepository{
-			getSourceLanguageFunc: func(source string) (sourceLanguageCode string, ok bool) {
+			getSourceLanguageFunc: func(ctx context.Context, source string) (sourceLanguageCode string, ok bool) {
 				return "ja", true
 			},
 		}
@@ -90,7 +90,7 @@ func TestAppService_Clean(t *testing.T) {
 		ctx := context.Background()
 		logger := helper.MockLogger{}
 		repo := spyFeedRepository{
-			getSourceLanguageFunc: func(source string) (sourceLanguageCode string, ok bool) {
+			getSourceLanguageFunc: func(ctx context.Context, source string) (sourceLanguageCode string, ok bool) {
 				return "", false
 			},
 		}
@@ -160,7 +160,7 @@ func TestAppService_Clean(t *testing.T) {
 		ctx := context.Background()
 		logger := helper.MockLogger{}
 		repo := spyFeedRepository{
-			getSourceLanguageFunc: func(source string) (sourceLanguageCode string, ok bool) {
+			getSourceLanguageFunc: func(ctx context.Context, source string) (sourceLanguageCode string, ok bool) {
 				return "en", true
 			},
 		}

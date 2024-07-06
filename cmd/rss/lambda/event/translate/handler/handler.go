@@ -16,14 +16,18 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 )
 
-type feedProvider struct{}
+type feedProvider struct {
+	repo *rss.DynamoDBRssRepository
+}
 
-func (r *feedProvider) GetSourceLanguage(source string) (sourceLanguageCode string, ok bool) {
-	languageFeedMap := map[string]string{
-		"azure.microsoft.com": "en",
-		"go.dev":              "en",
-		"feed.infoq.com":      "en",
-		"techcrunch.com":      "en",
+func (r *feedProvider) GetSourceLanguage(ctx context.Context, source string) (sourceLanguageCode string, ok bool) {
+	feeds, err := r.repo.FindAll(ctx)
+	if err != nil {
+		return "", false
+	}
+	languageFeedMap := make(map[string]string)
+	for _, feed := range feeds {
+		languageFeedMap[feed.Link] = feed.Language
 	}
 
 	sourceLanguageCode, ok = languageFeedMap[source]
@@ -41,7 +45,9 @@ func Handler(ctx context.Context, event events.SNSEvent) error {
 	publisher := publisher.NewWriterMessagePublisher(snsTopicClient)
 	easyTranslateClient := awsConfig.NewTranslateClient(translateClient)
 
-	feedProvider := feedProvider{}
+	dynamodbClient := cfg.NewDynamodbClient()
+	rssRepository := rss.NewDynamoDBRssRepository(dynamodbClient)
+	feedProvider := feedProvider{repo: rssRepository}
 
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	logger.Info("SNS Event", "event", shared.SnsEventToJson(event))
