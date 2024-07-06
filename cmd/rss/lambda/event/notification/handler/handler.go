@@ -18,7 +18,7 @@ import (
 
 const updateTimeThreshold = 30 * time.Minute
 
-type executer func(ctx context.Context, logger infrastructure.Logger, source string) error
+type executer func(ctx context.Context, logger infrastructure.Logger, isNew bool, source string) error
 
 type slackChannelClient struct {
 	client    *slack.Client
@@ -43,15 +43,21 @@ func Handler(ctx context.Context, event events.DynamoDBEvent) error {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	logger.Info("DynamoDBEvent Event", "event", shared.DynamoDBEventToJson(event))
 
-	executer := func(ctx context.Context, logger infrastructure.Logger, source string) error {
+	executer := func(ctx context.Context, logger infrastructure.Logger, isNew bool, source string) error {
 		now := time.Now()
 		conditions := app_service.RssConditions{
 			Target: func(r rss.Rss) bool {
+				if isNew {
+					return true
+				}
 				shouldProcess := now.Sub(r.LastBuildDate) <= updateTimeThreshold
 				logger.Info("The LastBuildDate is not within the last update time threshold. Skipping processing.", "ID", r.ID, "UpdateTimeThreshold", updateTimeThreshold, "isOutdated", shouldProcess)
 				return shouldProcess
 			},
 			ItemFilter: func(item rss.Item) bool {
+				if isNew {
+					return true
+				}
 				result := now.Sub(item.PubDate) <= updateTimeThreshold
 				logger.Info(fmt.Sprintf("Checking item with GUID: %s, PubDate: %s, Current time: %s, Update time threshold: %v, Result: %t",
 					item.Guid.Value, item.PubDate.Format(time.RFC3339), now.Format(time.RFC3339), updateTimeThreshold, result))
@@ -89,5 +95,5 @@ func processRecord(ctx context.Context, logger infrastructure.Logger, executer e
 	}
 
 	source := record.Change.NewImage["source"].String()
-	return executer(ctx, logger, source)
+	return executer(ctx, logger, record.EventName == "INSERT", source)
 }
