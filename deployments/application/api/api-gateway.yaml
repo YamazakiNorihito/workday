@@ -1,0 +1,29 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Resources:
+  RestApi:
+    Type: 'AWS::ApiGateway::RestApi'
+    Properties:
+      Name: 'rss-rest-api'
+      EndpointConfiguration:
+        Types:
+          - "EDGE"
+
+  ApiResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !GetAtt RestApi.RootResourceId
+      PathPart: api
+      RestApiId: !Ref RestApi
+  Version1Resource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !Ref ApiResource
+      PathPart: v1
+      RestApiId: !Ref RestApi
+
+Outputs:
+  RestApiId:
+    Value: !Ref RestApi
+  Version1ResourceArn:
+    Value: !Ref Version1Resource

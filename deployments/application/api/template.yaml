@@ -1,0 +1,36 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Parameters:
+  TemplateBucket:
+    Type: String
+    Description: "The S3 bucket where the templates are stored"
+
+Resources:
+  ApiGatewayStack:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/application/api/api-gateway.yaml"
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
+
+  RssResourceRootStack:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/application/api/alarm-resource-root.yaml"
+      Parameters:
+        TemplateBucket: !Ref TemplateBucket
+        LambdaRoleArn: !ImportValue LambdaRoleArn
+        RestApiId: !GetAtt ApiGatewayStack.Outputs.RestApiId
+        VersionResourceArn: !GetAtt ApiGatewayStack.Outputs.Version1ResourceArn
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
+
+  DeploymentStack:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/application/api/api-gateway-deployment.yaml"
+      Parameters:
+        RestApiId: !GetAtt ApiGatewayStack.Outputs.RestApiId
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
+    DependsOn:
+      - RssResourceRootStack

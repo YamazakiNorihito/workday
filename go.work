@@ -2,6 +2,7 @@ go 1.22.2
 
 use (
 	.
+	./cmd/rss/lambda/api/create
 	./cmd/rss/lambda/event/clean
 	./cmd/rss/lambda/event/notification
 	./cmd/rss/lambda/event/subscribe
