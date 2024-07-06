@@ -22,6 +22,16 @@ Resources:
       SSESpecification:
         SSEEnabled: false
       TableClass: 'STANDARD'
+      GlobalSecondaryIndexes:
+        - IndexName: "SortKeyIndex"
+          KeySchema:
+            - AttributeName: "sortKey"
+              KeyType: "HASH"
+          Projection:
+            ProjectionType: "ALL"
+          ProvisionedThroughput:
+            ReadCapacityUnits: 3
+            WriteCapacityUnits: 3
 Outputs:
   Arn:
     Value: !GetAtt 'Rss.Arn'

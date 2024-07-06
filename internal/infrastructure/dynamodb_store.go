@@ -64,6 +64,27 @@ func (r *DynamoDBStore) QueryItemsBySortPrefix(ctx context.Context, partitionkey
 	return result, nil
 }
 
+func (r *DynamoDBStore) QueryItemsBySortKey(ctx context.Context, sortKey string) (*dynamodb.QueryOutput, error) {
+	input := &dynamodb.QueryInput{
+		TableName:              &r.TableName,
+		IndexName:              aws.String("SortKeyIndex"),
+		KeyConditionExpression: aws.String("sortKey = :sortKey"),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":sortKey": &types.AttributeValueMemberS{Value: sortKey},
+		},
+	}
+	optFns := func(o *dynamodb.Options) {
+		o.RetryMaxAttempts = 1
+		o.RetryMode = aws.RetryModeStandard
+	}
+	result, err := r.client.Query(ctx, input, optFns)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
 func (r *DynamoDBStore) PutItem(ctx context.Context, item interface{}) error {
 
 	mapItem, err := attributevalue.MarshalMap(item)

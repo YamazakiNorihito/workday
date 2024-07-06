@@ -64,6 +64,7 @@ func (r *rssModel) NewItemModel(item Item) itemModel {
 
 type IRssRepository interface {
 	FindBySource(ctx context.Context, source string) (Rss, error)
+	FindAll(ctx context.Context) ([]Rss, error)
 	FindItems(ctx context.Context, rss Rss) (Rss, error)
 	FindItemsByPk(ctx context.Context, rss Rss, guid Guid) (Rss, error)
 	Save(ctx context.Context, rss Rss, updateBy metadata.UserMeta) (Rss, error)
@@ -82,12 +83,17 @@ func NewDynamoDBRssRepository(client *dynamodb.Client) *DynamoDBRssRepository {
 // - Due to data volume concerns, `Item` data is not returned by this function.
 // - If `Item` data is needed, use `FindItems` or `FindItemsByPk` functions instead.
 func (r *DynamoDBRssRepository) FindBySource(ctx context.Context, source string) (Rss, error) {
-
 	if source == "" {
 		return Rss{}, errors.New("invalid source")
 	}
 
-	rssModel, err := r.getRssModel(ctx, source)
+	result, err := r.dynamoDBStore.GetItemById(ctx, source, "rss")
+	if err != nil {
+		return Rss{}, err
+	}
+
+	var rssModel rssModel
+	err = attributevalue.UnmarshalMap(result.Item, &rssModel)
 	if err != nil {
 		return Rss{}, err
 	}
@@ -100,19 +106,30 @@ func (r *DynamoDBRssRepository) FindBySource(ctx context.Context, source string)
 	return buildRss(manager), nil
 }
 
-func (r *DynamoDBRssRepository) getRssModel(ctx context.Context, source string) (rssModel, error) {
-	result, err := r.dynamoDBStore.GetItemById(ctx, source, "rss")
+func (r *DynamoDBRssRepository) FindAll(ctx context.Context) ([]Rss, error) {
+	results, err := r.dynamoDBStore.QueryItemsBySortKey(ctx, "rss")
 	if err != nil {
-		return rssModel{}, err
+		return []Rss{}, err
 	}
 
-	var model rssModel
-	err = attributevalue.UnmarshalMap(result.Item, &model)
-	if err != nil {
-		return rssModel{}, err
+	var rssFeeds []Rss
+	for _, item := range results.Items {
+		var rssModel rssModel
+		err = attributevalue.UnmarshalMap(item, &rssModel)
+		if err != nil {
+			return []Rss{}, err
+		}
+
+		manager := rssManager{
+			rss:   rssModel,
+			items: []itemModel{},
+		}
+
+		rss := buildRss(manager)
+		rssFeeds = append(rssFeeds, rss)
 	}
 
-	return model, nil
+	return rssFeeds, nil
 }
 
 func (r *DynamoDBRssRepository) FindItems(ctx context.Context, rss Rss) (Rss, error) {
