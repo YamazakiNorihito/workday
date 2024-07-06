@@ -6,6 +6,114 @@ POST {{base_uri}}/api/v1/rss
 Content-Type: application/json
 
 {
-  "feed_url": "https://blog.cybozu.io/rss",
+  "feed_url": "https://azure.microsoft.com/ja-jp/blog/feed/",
+  "source_language_code": "en"
+}
+
+### create
+POST {{base_uri}}/api/v1/rss
+Content-Type: application/json
+
+{
+  "feed_url": "https://aws.amazon.com/jp/blogs/news/feed/",
+  "source_language_code": "ja"
+}
+
+### create
+POST {{base_uri}}/api/v1/rss
+Content-Type: application/json
+
+{
+  "feed_url": "https://developers-jp.googleblog.com/atom.xml",
+  "source_language_code": "ja"
+}
+
+### create
+POST {{base_uri}}/api/v1/rss
+Content-Type: application/json
+
+{
+  "feed_url": "https://techblog.nhn-techorus.com/feed",
+  "source_language_code": "ja"
+}
+
+### create
+POST {{base_uri}}/api/v1/rss
+Content-Type: application/json
+
+{
+  "feed_url": "https://buildersbox.corp-sansan.com/rss",
+  "source_language_code": "ja"
+}
+
+### create
+POST {{base_uri}}/api/v1/rss
+Content-Type: application/json
+
+{
+  "feed_url": "https://knowledge.sakura.ad.jp/rss/",
+  "source_language_code": "ja"
+}
+
+### create
+POST {{base_uri}}/api/v1/rss
+Content-Type: application/json
+
+{
+  "feed_url": "https://www.oreilly.co.jp/catalog/soon.xml",
+  "source_language_code": "ja"
+}
+
+### create
+POST {{base_uri}}/api/v1/rss
+Content-Type: application/json
+
+{
+  "feed_url": "https://go.dev/blog/feed.atom",
+  "source_language_code": "en"
+}
+
+### create
+POST {{base_uri}}/api/v1/rss
+Content-Type: application/json
+
+{
+  "feed_url": "https://connpass.com/explore/ja.atom",
+  "source_language_code": "ja"
+}
+
+### create
+POST {{base_uri}}/api/v1/rss
+Content-Type: application/json
+
+{
+  "feed_url": "https://www.ipa.go.jp/security/alert-rss.rdf",
+  "source_language_code": "ja"
+}
+
+### create
+POST {{base_uri}}/api/v1/rss
+Content-Type: application/json
+
+{
+  "feed_url": "https://feed.infoq.com",
+  "source_language_code": "en"
+}
+
+### create
+POST {{base_uri}}/api/v1/rss
+Content-Type: application/json
+
+{
+  "feed_url": "https://techcrunch.com/feed",
+  "source_language_code": "en"
+}
+
+### create
+POST {{base_uri}}/api/v1/rss
+Content-Type: application/json
+
+{
+  "feed_url": "https://www.publickey1.jp/atom.xml",
   "source_language_code": "ja"
 }

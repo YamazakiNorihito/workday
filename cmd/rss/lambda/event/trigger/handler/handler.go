@@ -16,9 +16,9 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 )
 
-type feedRepository struct{}
+type feedProvider struct{}
 
-func (r *feedRepository) GetFeedURLs() []string {
+func (r *feedProvider) GetFeedURLs() []string {
 	return []string{
 		"https://azure.microsoft.com/ja-jp/blog/feed/",
 		"https://aws.amazon.com/jp/blogs/news/feed/",
@@ -56,7 +56,7 @@ func Handler(ctx context.Context, event events.EventBridgeEvent) error {
 		BatchSize: batchSize,
 		Sleep:     func() { time.Sleep(2 * time.Second) },
 	}
-	feedProvider := feedRepository{}
+	feedProvider := feedProvider{}
 
 	executer := func(ctx context.Context, logger infrastructure.Logger) error {
 		return app_service.Execute(ctx, logger, *publisher, throttleConfig, &feedProvider)
