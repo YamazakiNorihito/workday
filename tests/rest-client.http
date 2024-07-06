@@ -1,0 +1,11 @@
+# develop
+@base_uri=https://pumk06vfwb.execute-api.us-east-1.amazonaws.com/develop
+
+### create
+POST {{base_uri}}/api/v1/rss
+Content-Type: application/json
+
+{
+  "feed_url": "https://blog.cybozu.io/rss",
+  "source_language_code": "ja"
+}

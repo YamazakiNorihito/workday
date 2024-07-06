@@ -3,49 +3,15 @@ Parameters:
   TemplateBucket:
     Type: String
 Resources:
-  LambdaRssNotificationStack:
+  EventStack:
     Type: "AWS::CloudFormation::Stack"
     Properties:
-      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/application/rss-notification.yaml"
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/application/event/template.yaml"
       Parameters:
-        LambdaRoleArn: !ImportValue LambdaRoleArn
-        DynamoDBStreamArn: !ImportValue RssStreamArn
-  LambdaRssTriggerStack:
+        TemplateBucket: !Ref TemplateBucket
+  APIStack:
     Type: "AWS::CloudFormation::Stack"
     Properties:
-      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/application/rss-trigger.yaml"
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/application/api/template.yaml"
       Parameters:
-        LambdaRoleArn: !ImportValue LambdaRoleArn
-        SchedulerRoleArn: !ImportValue SchedulerRoleArn
-        OutPutTopicRssArn: !ImportValue RssSubscribeTopicArn
-  LambdaRssSubscribeStack:
-    Type: "AWS::CloudFormation::Stack"
-    Properties:
-      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/application/rss-subscribe.yaml"
-      Parameters:
-        LambdaRoleArn: !ImportValue LambdaRoleArn
-        TriggerTopicRssArn: !ImportValue RssSubscribeTopicArn
-        OutPutTopicRssArn: !ImportValue RssCleanTopicArn
-  LambdaRssCleanStack:
-    Type: "AWS::CloudFormation::Stack"
-    Properties:
-      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/application/rss-clean.yaml"
-      Parameters:
-        LambdaRoleArn: !ImportValue LambdaRoleArn
-        TriggerTopicRssArn: !ImportValue RssCleanTopicArn
-        OutPutTopicRssArn: !ImportValue RssTranslateTopicArn
-  LambdaRssTranslateStack:
-    Type: "AWS::CloudFormation::Stack"
-    Properties:
-      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/application/rss-translate.yaml"
-      Parameters:
-        LambdaRoleArn: !ImportValue LambdaRoleArn
-        TriggerTopicRssArn: !ImportValue RssTranslateTopicArn
-        OutPutTopicRssArn: !ImportValue RssWriteTopicArn
-  LambdaRssWriteStack:
-    Type: "AWS::CloudFormation::Stack"
-    Properties:
-      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/application/rss-write.yaml"
-      Parameters:
-        LambdaRoleArn: !ImportValue LambdaRoleArn
-        TriggerTopicRssArn: !ImportValue RssWriteTopicArn
+        TemplateBucket: !Ref TemplateBucket

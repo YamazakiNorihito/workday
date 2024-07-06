@@ -1,0 +1,51 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Parameters:
+  TemplateBucket:
+    Type: String
+Resources:
+  LambdaRssNotificationStack:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/application/event/rss-notification.yaml"
+      Parameters:
+        LambdaRoleArn: !ImportValue LambdaRoleArn
+        DynamoDBStreamArn: !ImportValue RssStreamArn
+  LambdaRssTriggerStack:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/application/event/rss-trigger.yaml"
+      Parameters:
+        LambdaRoleArn: !ImportValue LambdaRoleArn
+        SchedulerRoleArn: !ImportValue SchedulerRoleArn
+        OutPutTopicRssArn: !ImportValue RssSubscribeTopicArn
+  LambdaRssSubscribeStack:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/application/event/rss-subscribe.yaml"
+      Parameters:
+        LambdaRoleArn: !ImportValue LambdaRoleArn
+        TriggerTopicRssArn: !ImportValue RssSubscribeTopicArn
+        OutPutTopicRssArn: !ImportValue RssCleanTopicArn
+  LambdaRssCleanStack:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/application/event/rss-clean.yaml"
+      Parameters:
+        LambdaRoleArn: !ImportValue LambdaRoleArn
+        TriggerTopicRssArn: !ImportValue RssCleanTopicArn
+        OutPutTopicRssArn: !ImportValue RssTranslateTopicArn
+  LambdaRssTranslateStack:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/application/event/rss-translate.yaml"
+      Parameters:
+        LambdaRoleArn: !ImportValue LambdaRoleArn
+        TriggerTopicRssArn: !ImportValue RssTranslateTopicArn
+        OutPutTopicRssArn: !ImportValue RssWriteTopicArn
+  LambdaRssWriteStack:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/application/event/rss-write.yaml"
+      Parameters:
+        LambdaRoleArn: !ImportValue LambdaRoleArn
+        TriggerTopicRssArn: !ImportValue RssWriteTopicArn

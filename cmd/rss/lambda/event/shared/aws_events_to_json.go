@@ -33,3 +33,12 @@ func DynamoDBEventToJson(event events.DynamoDBEvent) string {
 	}
 	return string(eventJSON)
 }
+
+func APIGatewayProxyRequestToJson(event events.APIGatewayProxyRequest) string {
+	eventJSON, err := json.Marshal(event)
+	if err != nil {
+		log.Printf("Failed to marshal EventBridge event: %v", err)
+		return ""
+	}
+	return string(eventJSON)
+}

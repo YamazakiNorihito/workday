@@ -1,0 +1,21 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+  RestApiId:
+    Type: String
+
+Resources:
+  DevelopDeployment:
+    Type: AWS::ApiGateway::Deployment
+    Properties:
+      RestApiId: !Ref RestApiId
+  DevelopStage:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      StageName: "develop"
+      RestApiId: !Ref RestApiId
+      DeploymentId: !Ref DevelopDeployment
+      CacheClusterEnabled: true
+      CacheClusterSize: "1.6"
+      Variables: 
+        env: "develop"
+      TracingEnabled: true

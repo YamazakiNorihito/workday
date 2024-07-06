@@ -1,0 +1,44 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+  LambdaRoleArn:
+    Type: String
+  OutPutTopicRssArn:
+    Type: String
+Resources:
+  FunctionStack:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: "RssCreateFunction"
+      Runtime: provided.al2023
+      Architectures:
+        - x86_64
+      Handler: bootstrap
+      Role: !Ref LambdaRoleArn
+      Timeout: 10
+      PackageType: Zip
+      Code:
+        S3Bucket: "nybeyond-com-deploy"
+        S3Key: "binaries/rss/lambda/api/create/function.zip"
+      LoggingConfig:
+        LogGroup: !Ref LambdaLogGroup
+      Environment:
+        Variables:
+          OUTPUT_TOPIC_RSS_ARN: !Ref OutPutTopicRssArn
+  LambdaLogGroup:
+    Type: 'AWS::Logs::LogGroup'
+    Properties:
+      LogGroupName: "/aws/lambda/RssCreateFunction"
+      RetentionInDays: 1
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
+  LambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref FunctionStack
+      Principal: "apigateway.amazonaws.com"
+Outputs:
+  Arn:
+    Value: !GetAtt 'FunctionStack.Arn'
+  Name:
+    Value: !Ref 'FunctionStack'
