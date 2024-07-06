@@ -9,6 +9,7 @@ import (
 
 type SpyRssRepository struct {
 	FindBySourceFunc  func(ctx context.Context, source string) (rss.Rss, error)
+	FindAllFunc       func(ctx context.Context) ([]rss.Rss, error)
 	FindItemsFunc     func(ctx context.Context, rss rss.Rss) (rss.Rss, error)
 	FindItemsByPkFunc func(ctx context.Context, rss rss.Rss, guid rss.Guid) (rss.Rss, error)
 	SaveFunc          func(ctx context.Context, rss rss.Rss, updateBy metadata.UserMeta) (rss.Rss, error)
@@ -19,6 +20,13 @@ func (r *SpyRssRepository) FindBySource(ctx context.Context, source string) (rss
 		return r.FindBySourceFunc(ctx, source)
 	}
 	panic("FindBySourceFunc is not implemented")
+}
+
+func (r *SpyRssRepository) FindAll(ctx context.Context) ([]rss.Rss, error) {
+	if r.FindAllFunc != nil {
+		return r.FindAllFunc(ctx)
+	}
+	panic("FindAllFunc is not implemented")
 }
 
 func (r *SpyRssRepository) FindItems(ctx context.Context, rss rss.Rss) (rss.Rss, error) {

@@ -34,7 +34,11 @@ Resources:
                   - 'dynamodb:PutItem'
                   - 'dynamodb:Query'
                   - 'dynamodb:GetItem'
-                Resource: !ImportValue  RssTableArn
+                Resource: 
+                  - !ImportValue RssTableArn
+                  - !Sub
+                    - "${TableArn}/index/*"
+                    - TableArn: !ImportValue RssTableArn
         - PolicyName: 'LambdaCloudWatchLogsPolicy'
           PolicyDocument:
             Version: '2012-10-17'

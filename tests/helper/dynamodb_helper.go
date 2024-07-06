@@ -80,15 +80,16 @@ func deleteTable(ctx context.Context, client *dynamodb.Client, tableName string)
 	return err
 }
 
-type SchemaProvider func() ([]types.AttributeDefinition, []types.KeySchemaElement)
+type SchemaProvider func() ([]types.AttributeDefinition, []types.KeySchemaElement, []types.GlobalSecondaryIndex)
 
 func createTable(ctx context.Context, client *dynamodb.Client, tableName string, schemaProvider SchemaProvider) error {
-	attributeDefinitions, keySchema := schemaProvider()
+	attributeDefinitions, keySchema, gsi := schemaProvider()
 
 	_, err := client.CreateTable(ctx, &dynamodb.CreateTableInput{
-		AttributeDefinitions: attributeDefinitions,
-		KeySchema:            keySchema,
-		TableName:            aws.String(tableName),
+		AttributeDefinitions:   attributeDefinitions,
+		KeySchema:              keySchema,
+		TableName:              aws.String(tableName),
+		GlobalSecondaryIndexes: gsi,
 		ProvisionedThroughput: &types.ProvisionedThroughput{
 			ReadCapacityUnits:  aws.Int64(10),
 			WriteCapacityUnits: aws.Int64(10),

@@ -9,12 +9,8 @@ import (
 	"github.com/YamazakiNorihito/workday/pkg/rss/publisher"
 )
 
-type FeedLanguageProvider interface {
-	GetSourceLanguage(source string) (string, bool)
-}
-
-func Execute(ctx context.Context, logger infrastructure.Logger, translator shared.Translator, feedLanguageProvider FeedLanguageProvider, publisher publisher.WriterMessagePublisher, rssEntry rss.Rss) error {
-	translateRss, err := Translate(ctx, logger, translator, feedLanguageProvider, rssEntry)
+func Execute(ctx context.Context, logger infrastructure.Logger, translator shared.Translator, publisher publisher.WriterMessagePublisher, rssEntry rss.Rss) error {
+	translateRss, err := Translate(ctx, logger, translator, rssEntry)
 	if err != nil {
 		return err
 	}
@@ -27,17 +23,16 @@ func Execute(ctx context.Context, logger infrastructure.Logger, translator share
 	return nil
 }
 
-func Translate(ctx context.Context, logger infrastructure.Logger, translator shared.Translator, feedLanguageProvider FeedLanguageProvider, rssEntry rss.Rss) (rss.Rss, error) {
-	sourceLanguageCode, ok := feedLanguageProvider.GetSourceLanguage(rssEntry.Source)
-	if ok == false || sourceLanguageCode == "ja" {
+func Translate(ctx context.Context, logger infrastructure.Logger, translator shared.Translator, rssEntry rss.Rss) (rss.Rss, error) {
+	if rssEntry.Language == "ja" || rssEntry.Language == "" {
 		logger.Warn("翻訳対象外のためSkipします", "rssEntry.Source", rssEntry.Source)
 		return rssEntry, nil
 	}
 
-	logger.Info("Source language found", "sourceLanguageCode", sourceLanguageCode)
+	logger.Info("Source language found", "sourceLanguageCode", rssEntry.Language)
 	for guid, item := range rssEntry.Items {
 		if len(item.Description) > 0 {
-			translatedText, err := translator.TranslateText(ctx, sourceLanguageCode, "ja", item.Description)
+			translatedText, err := translator.TranslateText(ctx, rssEntry.Language, "ja", item.Description)
 			if err != nil {
 				logger.Warn("変換に失敗しました。原文のまま処理します。", "item.Title", item.Title, "error", err)
 				continue

@@ -15,8 +15,8 @@ func NewSubscribeMessagePublisher(publisher MessagePublisher) *SubscribeMessageP
 	return &SubscribeMessagePublisher{publisher: publisher}
 }
 
-func (p *SubscribeMessagePublisher) Publish(ctx context.Context, feedURL string) error {
-	message := message.Subscribe{FeedURL: feedURL}
+func (p *SubscribeMessagePublisher) Publish(ctx context.Context, feedURL string, language string) error {
+	message := message.Subscribe{FeedURL: feedURL, Language: language}
 
 	messageJson, err := json.Marshal(message)
 	if err != nil {

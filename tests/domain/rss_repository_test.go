@@ -19,7 +19,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func schemaProvider() ([]types.AttributeDefinition, []types.KeySchemaElement) {
+func schemaProvider() ([]types.AttributeDefinition, []types.KeySchemaElement, []types.GlobalSecondaryIndex) {
 	attributeDefinitions := []types.AttributeDefinition{
 		{
 			AttributeName: aws.String("id"),
@@ -42,7 +42,26 @@ func schemaProvider() ([]types.AttributeDefinition, []types.KeySchemaElement) {
 		},
 	}
 
-	return attributeDefinitions, keySchema
+	gsi := []types.GlobalSecondaryIndex{
+		{
+			IndexName: aws.String("SortKeyIndex"),
+			KeySchema: []types.KeySchemaElement{
+				{
+					AttributeName: aws.String("sortKey"),
+					KeyType:       types.KeyTypeHash,
+				},
+			},
+			Projection: &types.Projection{
+				ProjectionType: types.ProjectionTypeAll,
+			},
+			ProvisionedThroughput: &types.ProvisionedThroughput{
+				ReadCapacityUnits:  aws.Int64(10),
+				WriteCapacityUnits: aws.Int64(10),
+			},
+		},
+	}
+
+	return attributeDefinitions, keySchema, gsi
 }
 
 func TestRssRepository_Save(t *testing.T) {
@@ -248,6 +267,158 @@ func TestRssRepository_FindBySource(t *testing.T) {
 		assert.Equal(t, actual_rss, rss.Rss{Items: make(map[rss.Guid]rss.Item)})
 		assert.Equal(t, actual_rss.ID, uuid.Nil)
 		assert.Len(t, actual_rss.Items, 0)
+	})
+}
+
+func TestRssRepository_FindAll(t *testing.T) {
+	t.Run("should return error when source is empty", func(t *testing.T) {
+		// Arrange
+		ctx, client := setUp()
+		rssRepository := rss.NewDynamoDBRssRepository(client)
+
+		// Act
+		actual_rss_list, err := rssRepository.FindAll(ctx)
+
+		// Assert
+		assert.NoError(t, err)
+		assert.Len(t, actual_rss_list, 0)
+	})
+	t.Run("should return error when source is empty1", func(t *testing.T) {
+		// Arrange
+		ctx, client := setUp()
+		rssRepository := rss.NewDynamoDBRssRepository(client)
+		setupExpectedRss(t, ctx, rssRepository)
+
+		// Act
+		actual_rss_list, err := rssRepository.FindAll(ctx)
+
+		// Assert
+		assert.NoError(t, err)
+		assert.Len(t, actual_rss_list, 1)
+
+		actual_rss := actual_rss_list[0]
+		assert.Equal(t, "Test_Source", actual_rss.Source)
+		assert.Equal(t, "Test Title", actual_rss.Title)
+		assert.Equal(t, "http://example.com", actual_rss.Link)
+		assert.Equal(t, "Test Description", actual_rss.Description)
+		assert.Equal(t, "en", actual_rss.Language)
+		assert.Equal(t, time.Date(2024, time.June, 1, 13, 30, 0, 0, time.UTC), actual_rss.LastBuildDate.UTC())
+		assert.Equal(t, metadata.CreateBy{ID: "test-id", Name: "test-user"}, actual_rss.CreatedBy)
+		assert.NotEmpty(t, actual_rss.CreatedAt)
+		assert.Equal(t, metadata.UpdateBy{ID: "test-id", Name: "test-user"}, actual_rss.UpdatedBy)
+		assert.NotEmpty(t, actual_rss.UpdatedAt)
+	})
+
+	t.Run("should return Rss when source exists", func(t *testing.T) {
+		// Arrange
+		ctx, client := setUp()
+		rssRepository := rss.NewDynamoDBRssRepository(client)
+
+		var testRSS1 rss.Rss
+		helper.MustSucceed(t, func() error {
+			var err error
+			testRSS1, err = rss.New("Test Title 1", "Test_Source_1", "http://example.com/1", "Test Description 1", "ja", time.Date(2024, time.June, 1, 13, 30, 0, 0, time.UTC))
+			if err != nil {
+				return err
+			}
+
+			items := []struct {
+				guid, title, link, description, author string
+				pubDate                                time.Time
+			}{
+				{"guid-12345", "Test Title Item 1", "http://example.com/item1", "Test description item 1", "Test Author 1", time.Date(2023, time.June, 1, 13, 30, 0, 0, time.UTC)},
+				{"guid-67890", "Test Title Item 2", "http://example.com/item2", "Test description item 2", "Test Author 2", time.Date(2023, time.June, 2, 13, 30, 0, 0, time.UTC)},
+			}
+
+			for _, item := range items {
+				rssItem, err := rss.NewItem(rss.Guid{Value: item.guid}, item.title, item.link, item.description, item.author, item.pubDate)
+				if err != nil {
+					return err
+				}
+				testRSS1.AddOrUpdateItem(rssItem)
+			}
+
+			_, err = rssRepository.Save(ctx, testRSS1, metadata.UserMeta{ID: "test-id-1", Name: "test-user-1"})
+			if err != nil {
+				return err
+			}
+			return nil
+		})
+
+		var testRSS2 rss.Rss
+		helper.MustSucceed(t, func() error {
+			var err error
+			testRSS2, err = rss.New("Test Title 2", "Test_Source_2", "http://example.com/2", "Test Description 2", "en", time.Date(2024, time.June, 2, 13, 30, 0, 0, time.UTC))
+			if err != nil {
+				return err
+			}
+
+			items := []struct {
+				guid, title, link, description, author string
+				pubDate                                time.Time
+			}{
+				{"guid-54321", "Test Title Item 3", "http://example.com/item3", "Test description item 3", "Test Author 3", time.Date(2023, time.June, 3, 13, 30, 0, 0, time.UTC)},
+				{"guid-09876", "Test Title Item 4", "http://example.com/item4", "Test description item 4", "Test Author 4", time.Date(2023, time.June, 4, 13, 30, 0, 0, time.UTC)},
+			}
+
+			for _, item := range items {
+				rssItem, err := rss.NewItem(rss.Guid{Value: item.guid}, item.title, item.link, item.description, item.author, item.pubDate)
+				if err != nil {
+					return err
+				}
+				testRSS2.AddOrUpdateItem(rssItem)
+			}
+
+			_, err = rssRepository.Save(ctx, testRSS2, metadata.UserMeta{ID: "test-id-2", Name: "test-user-2"})
+			if err != nil {
+				return err
+			}
+			return nil
+		})
+
+		// Act
+		actual_rss_list, err := rssRepository.FindAll(ctx)
+
+		// Assert
+		assert.NoError(t, err)
+		assert.Len(t, actual_rss_list, 2)
+
+		expectedRssFeeds := map[string]rss.Rss{
+			"Test_Source_1": {
+				Title:         "Test Title 1",
+				Source:        "Test_Source_1",
+				Link:          "http://example.com/1",
+				Description:   "Test Description 1",
+				Language:      "ja",
+				LastBuildDate: time.Date(2024, time.June, 1, 13, 30, 0, 0, time.UTC),
+				CreatedBy:     metadata.CreateBy{ID: "test-id-1", Name: "test-user-1"},
+				UpdatedBy:     metadata.UpdateBy{ID: "test-id-1", Name: "test-user-1"},
+			},
+			"Test_Source_2": {
+				Title:         "Test Title 2",
+				Source:        "Test_Source_2",
+				Link:          "http://example.com/2",
+				Description:   "Test Description 2",
+				Language:      "en",
+				LastBuildDate: time.Date(2024, time.June, 2, 13, 30, 0, 0, time.UTC),
+				CreatedBy:     metadata.CreateBy{ID: "test-id-2", Name: "test-user-2"},
+				UpdatedBy:     metadata.UpdateBy{ID: "test-id-2", Name: "test-user-2"},
+			},
+		}
+
+		for _, actualRss := range actual_rss_list {
+			expectedRss, exists := expectedRssFeeds[actualRss.Source]
+			assert.True(t, exists)
+			assert.Equal(t, expectedRss.Title, actualRss.Title)
+			assert.Equal(t, expectedRss.Link, actualRss.Link)
+			assert.Equal(t, expectedRss.Description, actualRss.Description)
+			assert.Equal(t, expectedRss.Language, actualRss.Language)
+			assert.Equal(t, expectedRss.LastBuildDate.UTC(), actualRss.LastBuildDate.UTC())
+			assert.Equal(t, expectedRss.CreatedBy, actualRss.CreatedBy)
+			assert.NotEmpty(t, actualRss.CreatedAt)
+			assert.Equal(t, expectedRss.UpdatedBy, actualRss.UpdatedBy)
+			assert.NotEmpty(t, actualRss.UpdatedAt)
+		}
 	})
 }
 

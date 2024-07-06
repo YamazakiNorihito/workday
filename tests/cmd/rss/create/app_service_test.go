@@ -110,7 +110,7 @@ func TestAppService_Trigger(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Len(t, messageClient.Messages, 1)
 		assert.ElementsMatch(t, messageClient.Messages, []string{
-			"{\"feed_url\":\"https://azure.microsoft.com/ja-jp/blog/feed\"}",
+			"{\"feed_url\":\"https://azure.microsoft.com/ja-jp/blog/feed\",\"language\":\"en\"}",
 		})
 	})
 }

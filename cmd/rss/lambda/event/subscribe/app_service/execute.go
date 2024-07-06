@@ -7,12 +7,7 @@ import (
 	"github.com/YamazakiNorihito/workday/internal/domain/rss"
 	"github.com/YamazakiNorihito/workday/internal/infrastructure"
 	"github.com/YamazakiNorihito/workday/pkg/rss/publisher"
-	"github.com/mmcdole/gofeed"
 )
-
-type FeedParser interface {
-	ParseURLWithContext(feedURL string, ctx context.Context) (feed *gofeed.Feed, err error)
-}
 
 func Execute(ctx context.Context, logger infrastructure.Logger, feedRepository *FeedRepository, publisher publisher.WriterMessagePublisher) error {
 	entryRss, err := Subscribe(ctx, logger, feedRepository)
@@ -41,7 +36,7 @@ func Subscribe(ctx context.Context, logger infrastructure.Logger, feedRepository
 	}
 
 	lastBuildDate := getLastBuildDate(*feed)
-	rssEntry, err = rss.New(feed.Title, source, feedRepository.FeedURL(), feed.Description, feed.Language, lastBuildDate.UTC())
+	rssEntry, err = rss.New(feed.Title, source, feedRepository.FeedURL(), feed.Description, feedRepository.Language(), lastBuildDate.UTC())
 	if err != nil {
 		return rss.Rss{}, err
 	}

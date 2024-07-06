@@ -16,20 +16,6 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 )
 
-type feedRepository struct{}
-
-func (r *feedRepository) GetSourceLanguage(source string) (sourceLanguageCode string, ok bool) {
-	languageFeedMap := map[string]string{
-		"azure.microsoft.com": "en",
-		"go.dev":              "en",
-		"feed.infoq.com":      "en",
-		"techcrunch.com":      "en",
-	}
-
-	sourceLanguageCode, ok = languageFeedMap[source]
-	return
-}
-
 type executer func(ctx context.Context, logger infrastructure.Logger, rssEntry rss.Rss) error
 
 func Handler(ctx context.Context, event events.SNSEvent) error {
@@ -41,13 +27,11 @@ func Handler(ctx context.Context, event events.SNSEvent) error {
 	publisher := publisher.NewWriterMessagePublisher(snsTopicClient)
 	easyTranslateClient := awsConfig.NewTranslateClient(translateClient)
 
-	feedProvider := feedRepository{}
-
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	logger.Info("SNS Event", "event", shared.SnsEventToJson(event))
 
 	executer := func(ctx context.Context, logger infrastructure.Logger, rssEntry rss.Rss) error {
-		return app_service.Execute(ctx, logger, easyTranslateClient, &feedProvider, *publisher, rssEntry)
+		return app_service.Execute(ctx, logger, easyTranslateClient, *publisher, rssEntry)
 	}
 
 	for _, record := range event.Records {

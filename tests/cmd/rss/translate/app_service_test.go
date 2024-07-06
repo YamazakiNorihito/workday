@@ -12,17 +12,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type spyFeedRepository struct {
-	getSourceLanguageFunc func(source string) (sourceLanguageCode string, ok bool)
-}
-
-func (r *spyFeedRepository) GetSourceLanguage(source string) (sourceLanguageCode string, ok bool) {
-	if r.getSourceLanguageFunc != nil {
-		return r.getSourceLanguageFunc(source)
-	}
-	panic("getSourceLanguageFunc is not implemented")
-}
-
 type spyTranslator struct {
 	translateTextFunc func(ctx context.Context, sourceLanguageCode string, targetLanguageCode string, text string) (translatedText string, err error)
 }
@@ -40,15 +29,10 @@ func TestAppService_Clean(t *testing.T) {
 		test_rss := GenerateJapaneseTestRss(t)
 		ctx := context.Background()
 		logger := helper.MockLogger{}
-		repo := spyFeedRepository{
-			getSourceLanguageFunc: func(source string) (sourceLanguageCode string, ok bool) {
-				return "ja", true
-			},
-		}
 		translator := spyTranslator{}
 
 		// Act
-		act_rss, err := app_service.Translate(ctx, &logger, &translator, &repo, test_rss)
+		act_rss, err := app_service.Translate(ctx, &logger, &translator, test_rss)
 
 		// Assert
 		assert.NoError(t, err)
@@ -89,15 +73,10 @@ func TestAppService_Clean(t *testing.T) {
 		test_rss := GenerateJapaneseTestRss(t)
 		ctx := context.Background()
 		logger := helper.MockLogger{}
-		repo := spyFeedRepository{
-			getSourceLanguageFunc: func(source string) (sourceLanguageCode string, ok bool) {
-				return "", false
-			},
-		}
 		translator := spyTranslator{}
 
 		// Act
-		act_rss, err := app_service.Translate(ctx, &logger, &translator, &repo, test_rss)
+		act_rss, err := app_service.Translate(ctx, &logger, &translator, test_rss)
 
 		// Assert
 		assert.NoError(t, err)
@@ -159,11 +138,6 @@ func TestAppService_Clean(t *testing.T) {
 
 		ctx := context.Background()
 		logger := helper.MockLogger{}
-		repo := spyFeedRepository{
-			getSourceLanguageFunc: func(source string) (sourceLanguageCode string, ok bool) {
-				return "en", true
-			},
-		}
 
 		act_translateTextFunc_call_count := 0
 		translator := spyTranslator{
@@ -189,7 +163,7 @@ func TestAppService_Clean(t *testing.T) {
 		}
 
 		// Act
-		act_rss, err := app_service.Translate(ctx, &logger, &translator, &repo, test_rss)
+		act_rss, err := app_service.Translate(ctx, &logger, &translator, test_rss)
 
 		// Assert
 		assert.NoError(t, err)
