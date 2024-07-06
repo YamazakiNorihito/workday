@@ -16,7 +16,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 )
 
-type executer func(ctx context.Context, logger infrastructure.Logger, feedURL string) error
+type executer func(ctx context.Context, logger infrastructure.Logger, feedURL string, language string) error
 
 func Handler(ctx context.Context, event events.SNSEvent) error {
 	cfg := awsConfig.LoadConfig(ctx)
@@ -29,8 +29,8 @@ func Handler(ctx context.Context, event events.SNSEvent) error {
 	logger.Info("SNS Event", "event", shared.SnsEventToJson(event))
 
 	httpClient := &http.Client{}
-	executer := func(ctx context.Context, logger infrastructure.Logger, feedURL string) error {
-		repository := app_service.NewFeedRepository(httpClient, feedURL)
+	executer := func(ctx context.Context, logger infrastructure.Logger, feedURL string, language string) error {
+		repository := app_service.NewFeedRepository(httpClient, feedURL, language)
 		return app_service.Execute(ctx, logger, &repository, *publisher)
 	}
 
@@ -52,7 +52,7 @@ func processRecord(ctx context.Context, logger infrastructure.Logger, record eve
 		return err
 	}
 
-	return executer(ctx, logger, receiveMessage.FeedURL)
+	return executer(ctx, logger, receiveMessage.FeedURL, receiveMessage.Language)
 }
 
 func getMessage(record events.SNSEventRecord) (receiveMessage message.Subscribe, err error) {

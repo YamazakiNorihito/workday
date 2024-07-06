@@ -64,7 +64,7 @@ func TestAppService_Subscribe(t *testing.T) {
 		logger := helper.MockLogger{}
 
 		client := server.Client()
-		repo := app_service.NewFeedRepository(client, server.URL)
+		repo := app_service.NewFeedRepository(client, server.URL, "ja")
 
 		// Act
 		act_rss, err := app_service.Subscribe(ctx, &logger, &repo)
