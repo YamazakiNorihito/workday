@@ -9,7 +9,7 @@ import (
 )
 
 type FeedProvider interface {
-	GetFeedURLs() []string
+	GetFeedURLAndLanguage(ctx context.Context) (map[string]string, error)
 }
 
 func Execute(ctx context.Context, logger infrastructure.Logger, publisher publisher.SubscribeMessagePublisher, throttleConfig throttle.Config, feedProvider FeedProvider) error {
@@ -23,15 +23,20 @@ func Execute(ctx context.Context, logger infrastructure.Logger, publisher publis
 }
 
 func Trigger(ctx context.Context, logger infrastructure.Logger, publisher publisher.SubscribeMessagePublisher, throttleConfig throttle.Config, feedProvider FeedProvider) error {
-	feedURLs := feedProvider.GetFeedURLs()
-	for i, feedURL := range feedURLs {
-		err := publisher.Publish(ctx, feedURL)
+	feedURLAndLanguageMap, err := feedProvider.GetFeedURLAndLanguage(ctx)
+	if err != nil {
+		return err
+	}
+	i := 0
+	for feedURL, language := range feedURLAndLanguageMap {
+		err := publisher.Publish(ctx, feedURL, language)
 		if err != nil {
 			return err
 		}
 		if (i+1)%throttleConfig.BatchSize == 0 {
 			throttleConfig.Sleep()
 		}
+		i++
 	}
 	return nil
 }

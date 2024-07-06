@@ -82,5 +82,5 @@ func Trigger(ctx context.Context, logger infrastructure.Logger, publisher publis
 		return err
 	}
 
-	return publisher.Publish(ctx, command.FeedURL)
+	return publisher.Publish(ctx, command.FeedURL, command.SourceLanguageCode)
 }

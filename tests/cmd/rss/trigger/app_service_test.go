@@ -19,23 +19,25 @@ func (r *spyMessageClient) Publish(ctx context.Context, message string) error {
 	return nil
 }
 
-type spyFeedRepository struct{}
+type spyFeedProvider struct{}
 
-func (r *spyFeedRepository) GetFeedURLs() []string {
-	return []string{
-		"https://azure.microsoft.com/ja-jp/blog/feed/",
-		"https://aws.amazon.com/jp/blogs/news/feed/",
-		"https://developers-jp.googleblog.com/atom.xml",
-		"https://techblog.nhn-techorus.com/feed",
-		"https://buildersbox.corp-sansan.com/rss",
-		"https://knowledge.sakura.ad.jp/rss/",
-		"https://www.oreilly.co.jp/catalog/soon.xml",
-		"https://go.dev/blog/feed.atom",
-		"https://connpass.com/explore/ja.atom",
-		"https://www.ipa.go.jp/security/alert-rss.rdf",
-		"https://feed.infoq.com",
-		"https://techcrunch.com/feed",
+func (r *spyFeedProvider) GetFeedURLAndLanguage(ctx context.Context) (map[string]string, error) {
+	languageFeedMap := map[string]string{
+		"https://azure.microsoft.com/ja-jp/blog/feed/":  "en",
+		"https://aws.amazon.com/jp/blogs/news/feed/":    "ja",
+		"https://developers-jp.googleblog.com/atom.xml": "ja",
+		"https://techblog.nhn-techorus.com/feed":        "ja",
+		"https://buildersbox.corp-sansan.com/rss":       "ja",
+		"https://knowledge.sakura.ad.jp/rss/":           "ja",
+		"https://www.oreilly.co.jp/catalog/soon.xml":    "ja",
+		"https://go.dev/blog/feed.atom":                 "ja",
+		"https://connpass.com/explore/ja.atom":          "ja",
+		"https://www.ipa.go.jp/security/alert-rss.rdf":  "ja",
+		"https://feed.infoq.com":                        "en",
+		"https://techcrunch.com/feed":                   "en",
 	}
+
+	return languageFeedMap, nil
 }
 
 func TestAppService_Execute(t *testing.T) {
@@ -49,7 +51,7 @@ func TestAppService_Execute(t *testing.T) {
 			BatchSize: 1,
 			Sleep:     func() { time.Sleep(1 * time.Microsecond) },
 		}
-		feedRepository := spyFeedRepository{}
+		feedRepository := spyFeedProvider{}
 
 		// Act
 		err := app_service.Trigger(ctx, &logger, *subscribeMessagePublisher, throttle, &feedRepository)
@@ -58,18 +60,18 @@ func TestAppService_Execute(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Len(t, messageClient.Messages, 12)
 		assert.ElementsMatch(t, messageClient.Messages, []string{
-			"{\"feed_url\":\"https://azure.microsoft.com/ja-jp/blog/feed/\"}",
-			"{\"feed_url\":\"https://aws.amazon.com/jp/blogs/news/feed/\"}",
-			"{\"feed_url\":\"https://developers-jp.googleblog.com/atom.xml\"}",
-			"{\"feed_url\":\"https://techblog.nhn-techorus.com/feed\"}",
-			"{\"feed_url\":\"https://buildersbox.corp-sansan.com/rss\"}",
-			"{\"feed_url\":\"https://knowledge.sakura.ad.jp/rss/\"}",
-			"{\"feed_url\":\"https://www.oreilly.co.jp/catalog/soon.xml\"}",
-			"{\"feed_url\":\"https://go.dev/blog/feed.atom\"}",
-			"{\"feed_url\":\"https://connpass.com/explore/ja.atom\"}",
-			"{\"feed_url\":\"https://www.ipa.go.jp/security/alert-rss.rdf\"}",
-			"{\"feed_url\":\"https://feed.infoq.com\"}",
-			"{\"feed_url\":\"https://techcrunch.com/feed\"}",
+			"{\"feed_url\":\"https://azure.microsoft.com/ja-jp/blog/feed/\",\"language\":\"en\"}",
+			"{\"feed_url\":\"https://aws.amazon.com/jp/blogs/news/feed/\",\"language\":\"ja\"}",
+			"{\"feed_url\":\"https://developers-jp.googleblog.com/atom.xml\",\"language\":\"ja\"}",
+			"{\"feed_url\":\"https://techblog.nhn-techorus.com/feed\",\"language\":\"ja\"}",
+			"{\"feed_url\":\"https://buildersbox.corp-sansan.com/rss\",\"language\":\"ja\"}",
+			"{\"feed_url\":\"https://knowledge.sakura.ad.jp/rss/\",\"language\":\"ja\"}",
+			"{\"feed_url\":\"https://www.oreilly.co.jp/catalog/soon.xml\",\"language\":\"ja\"}",
+			"{\"feed_url\":\"https://go.dev/blog/feed.atom\",\"language\":\"ja\"}",
+			"{\"feed_url\":\"https://connpass.com/explore/ja.atom\",\"language\":\"ja\"}",
+			"{\"feed_url\":\"https://www.ipa.go.jp/security/alert-rss.rdf\",\"language\":\"ja\"}",
+			"{\"feed_url\":\"https://feed.infoq.com\",\"language\":\"en\"}",
+			"{\"feed_url\":\"https://techcrunch.com/feed\",\"language\":\"en\"}",
 		})
 	})
 
@@ -100,7 +102,7 @@ func TestAppService_Execute(t *testing.T) {
 						time.Sleep(1 * time.Microsecond)
 					},
 				}
-				feedRepository := spyFeedRepository{}
+				feedRepository := spyFeedProvider{}
 
 				// Act
 				err := app_service.Execute(ctx, &logger, *subscribeMessagePublisher, throttle, &feedRepository)
@@ -113,18 +115,18 @@ func TestAppService_Execute(t *testing.T) {
 				// the specified batch size.
 				assert.Equal(t, tc.expectedSleepCount, actSleepCount)
 				assert.ElementsMatch(t, messageClient.Messages, []string{
-					"{\"feed_url\":\"https://azure.microsoft.com/ja-jp/blog/feed/\"}",
-					"{\"feed_url\":\"https://aws.amazon.com/jp/blogs/news/feed/\"}",
-					"{\"feed_url\":\"https://developers-jp.googleblog.com/atom.xml\"}",
-					"{\"feed_url\":\"https://techblog.nhn-techorus.com/feed\"}",
-					"{\"feed_url\":\"https://buildersbox.corp-sansan.com/rss\"}",
-					"{\"feed_url\":\"https://knowledge.sakura.ad.jp/rss/\"}",
-					"{\"feed_url\":\"https://www.oreilly.co.jp/catalog/soon.xml\"}",
-					"{\"feed_url\":\"https://go.dev/blog/feed.atom\"}",
-					"{\"feed_url\":\"https://connpass.com/explore/ja.atom\"}",
-					"{\"feed_url\":\"https://www.ipa.go.jp/security/alert-rss.rdf\"}",
-					"{\"feed_url\":\"https://feed.infoq.com\"}",
-					"{\"feed_url\":\"https://techcrunch.com/feed\"}",
+					"{\"feed_url\":\"https://azure.microsoft.com/ja-jp/blog/feed/\",\"language\":\"en\"}",
+					"{\"feed_url\":\"https://aws.amazon.com/jp/blogs/news/feed/\",\"language\":\"ja\"}",
+					"{\"feed_url\":\"https://developers-jp.googleblog.com/atom.xml\",\"language\":\"ja\"}",
+					"{\"feed_url\":\"https://techblog.nhn-techorus.com/feed\",\"language\":\"ja\"}",
+					"{\"feed_url\":\"https://buildersbox.corp-sansan.com/rss\",\"language\":\"ja\"}",
+					"{\"feed_url\":\"https://knowledge.sakura.ad.jp/rss/\",\"language\":\"ja\"}",
+					"{\"feed_url\":\"https://www.oreilly.co.jp/catalog/soon.xml\",\"language\":\"ja\"}",
+					"{\"feed_url\":\"https://go.dev/blog/feed.atom\",\"language\":\"ja\"}",
+					"{\"feed_url\":\"https://connpass.com/explore/ja.atom\",\"language\":\"ja\"}",
+					"{\"feed_url\":\"https://www.ipa.go.jp/security/alert-rss.rdf\",\"language\":\"ja\"}",
+					"{\"feed_url\":\"https://feed.infoq.com\",\"language\":\"en\"}",
+					"{\"feed_url\":\"https://techcrunch.com/feed\",\"language\":\"en\"}",
 				})
 			})
 		}

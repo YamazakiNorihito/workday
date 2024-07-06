@@ -10,30 +10,27 @@ import (
 	"github.com/YamazakiNorihito/workday/cmd/rss/lambda/event/shared"
 	awsConfig "github.com/YamazakiNorihito/workday/cmd/rss/lambda/event/shared/aws_config"
 	"github.com/YamazakiNorihito/workday/cmd/rss/lambda/event/trigger/app_service"
+	"github.com/YamazakiNorihito/workday/internal/domain/rss"
 	"github.com/YamazakiNorihito/workday/internal/infrastructure"
 	"github.com/YamazakiNorihito/workday/pkg/rss/publisher"
 	"github.com/YamazakiNorihito/workday/pkg/throttle"
 	"github.com/aws/aws-lambda-go/events"
 )
 
-type feedProvider struct{}
+type feedProvider struct {
+	repo *rss.DynamoDBRssRepository
+}
 
-func (r *feedProvider) GetFeedURLs() []string {
-	return []string{
-		"https://azure.microsoft.com/ja-jp/blog/feed/",
-		"https://aws.amazon.com/jp/blogs/news/feed/",
-		"https://developers-jp.googleblog.com/atom.xml",
-		"https://techblog.nhn-techorus.com/feed",
-		"https://buildersbox.corp-sansan.com/rss",
-		"https://knowledge.sakura.ad.jp/rss/",
-		"https://www.oreilly.co.jp/catalog/soon.xml",
-		"https://go.dev/blog/feed.atom",
-		"https://connpass.com/explore/ja.atom",
-		"https://www.ipa.go.jp/security/alert-rss.rdf",
-		"https://feed.infoq.com",
-		"https://techcrunch.com/feed",
-		"https://www.publickey1.jp/atom.xml",
+func (r *feedProvider) GetFeedURLAndLanguage(ctx context.Context) (map[string]string, error) {
+	feeds, err := r.repo.FindAll(ctx)
+	if err != nil {
+		return nil, err
 	}
+	feedMap := make(map[string]string)
+	for _, feed := range feeds {
+		feedMap[feed.Link] = feed.Language
+	}
+	return feedMap, nil
 }
 
 type executer func(ctx context.Context, logger infrastructure.Logger) error
@@ -56,7 +53,10 @@ func Handler(ctx context.Context, event events.EventBridgeEvent) error {
 		BatchSize: batchSize,
 		Sleep:     func() { time.Sleep(2 * time.Second) },
 	}
-	feedProvider := feedProvider{}
+
+	dynamodbClient := cfg.NewDynamodbClient()
+	rssRepository := rss.NewDynamoDBRssRepository(dynamodbClient)
+	feedProvider := feedProvider{repo: rssRepository}
 
 	executer := func(ctx context.Context, logger infrastructure.Logger) error {
 		return app_service.Execute(ctx, logger, *publisher, throttleConfig, &feedProvider)

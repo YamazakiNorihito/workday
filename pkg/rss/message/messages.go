@@ -13,7 +13,8 @@ import (
 const MaxMessageSize = 256 * 1024
 
 type Subscribe struct {
-	FeedURL string `json:"feed_url"`
+	FeedURL  string `json:"feed_url"`
+	Language string `json:"language"`
 }
 
 type Write struct {
