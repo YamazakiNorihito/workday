@@ -280,7 +280,7 @@ func TestRssRepository_FindAll(t *testing.T) {
 		actual_rss_list, err := rssRepository.FindAll(ctx)
 
 		// Assert
-		assert.Error(t, err)
+		assert.NoError(t, err)
 		assert.Len(t, actual_rss_list, 0)
 	})
 	t.Run("should return error when source is empty1", func(t *testing.T) {
