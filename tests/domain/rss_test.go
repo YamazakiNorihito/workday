@@ -139,6 +139,42 @@ func TestRss_SetLastBuildDate(t *testing.T) {
 	})
 }
 
+func TestRss_SetLanguage(t *testing.T) {
+	t.Run("should override the current language when a new valid language code is provided", func(t *testing.T) {
+		// Arrange
+		var test_rss rss.Rss
+		helper.MustSucceed(t, func() error {
+			var err error
+			test_rss, err = rss.New("Test Title", "Test Source", "http://example.com", "Test Description", "ja", time.Date(2024, time.June, 1, 13, 30, 0, 0, time.UTC))
+			return err
+		})
+
+		// Act
+		err := test_rss.SetLanguage("en")
+
+		// Assert
+		assert.NoError(t, err)
+		assert.Equal(t, "en", test_rss.Language)
+	})
+
+	t.Run("should clear the language code when provided with an empty string", func(t *testing.T) {
+		// Arrange
+		var test_rss rss.Rss
+		helper.MustSucceed(t, func() error {
+			var err error
+			test_rss, err = rss.New("Test Title", "Test Source", "http://example.com", "Test Description", "en", time.Date(2024, time.June, 1, 13, 30, 0, 0, time.UTC))
+			return err
+		})
+
+		// Act
+		err := test_rss.SetLanguage("")
+
+		// Assert
+		assert.NoError(t, err)
+		assert.Equal(t, "", test_rss.Language)
+	})
+}
+
 func TestRss_AddOrUpdateItem(t *testing.T) {
 	t.Run("should add new item when item does not exist", func(t *testing.T) {
 		// Arrange

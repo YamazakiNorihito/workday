@@ -48,6 +48,11 @@ func (r *Rss) SetLastBuildDate(lastBuildDate time.Time) error {
 	return nil
 }
 
+func (r *Rss) SetLanguage(language string) error {
+	r.Language = language
+	return nil
+}
+
 func (r *Rss) AddOrUpdateItem(item Item) {
 	r.Items[item.Guid] = item
 }
