@@ -3,6 +3,8 @@ Parameters:
   TemplateBucket:
     Type: String
     Description: "The S3 bucket where the templates are stored"
+  TranslateApiUrl:
+    Type: String
 
 Resources:
   DynamoDBStack:
@@ -39,6 +41,7 @@ Resources:
       TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/application/template.yaml"
       Parameters:
         TemplateBucket: !Ref TemplateBucket
+        TranslateApiUrl: !Ref TranslateApiUrl
     DependsOn:
       - IAMStack
       - DynamoDBStack

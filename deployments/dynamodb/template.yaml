@@ -3,7 +3,7 @@ Resources:
   Rss:
     Type: "AWS::DynamoDB::Table"
     Properties:
-      TableName: !Sub "Rss"
+      TableName: "Rss"
       AttributeDefinitions:
         - AttributeName: "id"
           AttributeType: "S"

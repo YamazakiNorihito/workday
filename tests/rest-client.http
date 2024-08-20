@@ -1,5 +1,5 @@
 # develop
-@base_uri=https://pumk06vfwb.execute-api.us-east-1.amazonaws.com/develop
+@base_uri=https://i5hw5g9m6j.execute-api.us-east-1.amazonaws.com/develop
 
 ### create
 POST {{base_uri}}/api/v1/rss
