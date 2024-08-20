@@ -6,6 +6,8 @@ Parameters:
     Type: String
   OutPutTopicRssArn:
     Type: String
+  TranslateApiUrl:
+    Type: String
 Resources:
   FunctionStack:
     Type: AWS::Lambda::Function
@@ -26,6 +28,7 @@ Resources:
       Environment:
         Variables:
           OUTPUT_TOPIC_RSS_ARN: !Ref OutPutTopicRssArn
+          TRANSLATE_URL: !Ref TranslateApiUrl
   LambdaLogGroup:
     Type: 'AWS::Logs::LogGroup'
     Properties:

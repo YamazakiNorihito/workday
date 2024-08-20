@@ -2,6 +2,8 @@ AWSTemplateFormatVersion: "2010-09-09"
 Parameters:
   TemplateBucket:
     Type: String
+  TranslateApiUrl:
+    Type: String
 Resources:
   LambdaRssNotificationStack:
     Type: "AWS::CloudFormation::Stack"
@@ -10,6 +12,8 @@ Resources:
       Parameters:
         LambdaRoleArn: !ImportValue LambdaRoleArn
         DynamoDBStreamArn: !ImportValue RssStreamArn
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
   LambdaRssTriggerStack:
     Type: "AWS::CloudFormation::Stack"
     Properties:
@@ -18,6 +22,8 @@ Resources:
         LambdaRoleArn: !ImportValue LambdaRoleArn
         SchedulerRoleArn: !ImportValue SchedulerRoleArn
         OutPutTopicRssArn: !ImportValue RssSubscribeTopicArn
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
   LambdaRssSubscribeStack:
     Type: "AWS::CloudFormation::Stack"
     Properties:
@@ -26,6 +32,8 @@ Resources:
         LambdaRoleArn: !ImportValue LambdaRoleArn
         TriggerTopicRssArn: !ImportValue RssSubscribeTopicArn
         OutPutTopicRssArn: !ImportValue RssCleanTopicArn
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
   LambdaRssCleanStack:
     Type: "AWS::CloudFormation::Stack"
     Properties:
@@ -34,6 +42,8 @@ Resources:
         LambdaRoleArn: !ImportValue LambdaRoleArn
         TriggerTopicRssArn: !ImportValue RssCleanTopicArn
         OutPutTopicRssArn: !ImportValue RssTranslateTopicArn
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
   LambdaRssTranslateStack:
     Type: "AWS::CloudFormation::Stack"
     Properties:
@@ -42,6 +52,9 @@ Resources:
         LambdaRoleArn: !ImportValue LambdaRoleArn
         TriggerTopicRssArn: !ImportValue RssTranslateTopicArn
         OutPutTopicRssArn: !ImportValue RssWriteTopicArn
+        TranslateApiUrl: !Ref TranslateApiUrl
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
   LambdaRssWriteStack:
     Type: "AWS::CloudFormation::Stack"
     Properties:
@@ -49,3 +62,5 @@ Resources:
       Parameters:
         LambdaRoleArn: !ImportValue LambdaRoleArn
         TriggerTopicRssArn: !ImportValue RssWriteTopicArn
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain

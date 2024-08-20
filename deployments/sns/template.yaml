@@ -7,15 +7,23 @@ Resources:
     Type: "AWS::CloudFormation::Stack"
     Properties:
       TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/sns/topic-rss-subscribe.yaml"
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
   TopicWriteStack:
     Type: "AWS::CloudFormation::Stack"
     Properties:
       TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/sns/topic-rss-write.yaml"
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
   TopicTranslateStack:
     Type: "AWS::CloudFormation::Stack"
     Properties:
       TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/sns/topic-rss-translate.yaml"
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
   TopicCleanStack:
     Type: "AWS::CloudFormation::Stack"
     Properties:
       TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/sns/topic-rss-clean.yaml"
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain

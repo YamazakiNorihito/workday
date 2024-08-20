@@ -9,4 +9,4 @@ Outputs:
   Arn:
     Value: !GetAtt TopicStack.TopicArn
     Export:
-      Name: !Sub "RssTranslateTopicArn"
+      Name: "RssTranslateTopicArn"

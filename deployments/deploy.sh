@@ -79,7 +79,7 @@ aws cloudformation deploy \
   --template-file "template.yaml" \
   --s3-bucket "${BUCKET}" \
   --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
-  --parameter-overrides TemplateBucket=${BUCKET} \
+  --parameter-overrides TemplateBucket=${BUCKET} TranslateApiUrl=https://script.google.com/macros/s/AKfycbwrnNBNPJ94-HGK-Ske-aIjfI_bGuRQ37tg3MsI6Fqsb3n9psq_Z02znIwUjpMaLRudow/exec\
   --region "${REGION}" \
   --profile "${PROFILE}"
 

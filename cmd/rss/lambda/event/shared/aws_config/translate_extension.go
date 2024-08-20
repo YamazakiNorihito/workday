@@ -1,33 +1,66 @@
 package awsConfig
 
 import (
+	"bytes"
 	"context"
-
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/translate"
+	"encoding/json"
+	"errors"
+	"net/http"
 )
 
 type EasyTranslateClient struct {
-	client *translate.Client
+	url string
 }
 
-func NewTranslateClient(client *translate.Client) *EasyTranslateClient {
-	return &EasyTranslateClient{client}
+func NewTranslateClient(url string) *EasyTranslateClient {
+	return &EasyTranslateClient{url: url}
+}
+
+type translateRequest struct {
+	SourceLanguageCode string `json:"sourceLanguageCode"`
+	TargetLanguageCode string `json:"targetLanguageCode"`
+	Text               string `json:"text"`
+}
+
+type translateResponse struct {
+	Code  int    `json:"code"`
+	Text  string `json:"text"`
+	Error string `json:"error"`
 }
 
 func (c *EasyTranslateClient) TranslateText(ctx context.Context, sourceLanguageCode string, targetLanguageCode string, text string) (translatedText string, err error) {
-
-	input := &translate.TranslateTextInput{
-		SourceLanguageCode: aws.String(sourceLanguageCode),
-		TargetLanguageCode: aws.String(targetLanguageCode),
-		Text:               aws.String(text),
+	reqBody := translateRequest{
+		SourceLanguageCode: sourceLanguageCode,
+		TargetLanguageCode: targetLanguageCode,
+		Text:               text,
 	}
 
-	result, err := c.client.TranslateText(ctx, input)
+	jsonData, err := json.Marshal(reqBody)
 	if err != nil {
 		return "", err
 	}
 
-	translatedText = *result.TranslatedText
-	return translatedText, nil
+	req, err := http.NewRequestWithContext(ctx, "POST", c.url, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	var translateResp translateResponse
+	if err := json.NewDecoder(resp.Body).Decode(&translateResp); err != nil {
+		return "", err
+	}
+
+	if translateResp.Code != 200 {
+		return "", errors.New(translateResp.Error)
+	}
+
+	return translateResp.Text, nil
 }

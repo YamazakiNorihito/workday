@@ -14,8 +14,7 @@ Resources:
       StageName: "develop"
       RestApiId: !Ref RestApiId
       DeploymentId: !Ref DevelopDeployment
-      CacheClusterEnabled: true
-      CacheClusterSize: "1.6"
+      CacheClusterEnabled: false
       Variables: 
         env: "develop"
-      TracingEnabled: true
+      TracingEnabled: false

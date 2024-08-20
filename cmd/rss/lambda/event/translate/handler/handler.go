@@ -21,11 +21,10 @@ type executer func(ctx context.Context, logger infrastructure.Logger, rssEntry r
 func Handler(ctx context.Context, event events.SNSEvent) error {
 	cfg := awsConfig.LoadConfig(ctx)
 	snsClient := cfg.NewSnsClient()
-	translateClient := cfg.NewTranslateClient()
 
 	snsTopicClient := awsConfig.NewSnsTopicClient(snsClient, os.Getenv("OUTPUT_TOPIC_RSS_ARN"))
 	publisher := publisher.NewWriterMessagePublisher(snsTopicClient)
-	easyTranslateClient := awsConfig.NewTranslateClient(translateClient)
+	easyTranslateClient := awsConfig.NewTranslateClient(os.Getenv("TRANSLATE_URL"))
 
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	logger.Info("SNS Event", "event", shared.SnsEventToJson(event))

@@ -49,6 +49,18 @@
             }
         },
         {
+            "name": "RSS Translate DebugSetting",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${fileDirname}",
+            "env": {
+                "ENV" : "myhost",
+                "OUTPUT_TOPIC_RSS_ARN": "arn:aws:sns:us-east-1:000000000000:rss-write",
+                "TRANSLATE_URL": "https://script.google.com/macros/s/AKfycbwrnNBNPJ94-HGK-Ske-aIjfI_bGuRQ37tg3MsI6Fqsb3n9psq_Z02znIwUjpMaLRudow/exec",
+            }
+        },
+        {
             "name": "Launch Package",
             "type": "go",
             "request": "launch",
