@@ -8,14 +8,14 @@ Resources:
   ApiGatewayStack:
     Type: "AWS::CloudFormation::Stack"
     Properties:
-      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/application/api/api-gateway.yaml"
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/application/api/api-gateway-resource.yaml"
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
 
   RssResourceRootStack:
     Type: "AWS::CloudFormation::Stack"
     Properties:
-      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/application/api/alarm-resource-root.yaml"
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/application/api/api-gateway-resource-feeds.yaml"
       Parameters:
         TemplateBucket: !Ref TemplateBucket
         LambdaRoleArn: !ImportValue LambdaRoleArn
