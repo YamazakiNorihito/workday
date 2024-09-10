@@ -14,9 +14,12 @@ Resources:
   LambdaRssCreateStack:
     Type: "AWS::CloudFormation::Stack"
     Properties:
-      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/application/api/rss-create.yaml"
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/application/api/lambda-template.yaml"
       Parameters:
+        FunctionName: "RssCreateFunction"
         LambdaRoleArn: !Ref LambdaRoleArn
+        CodeS3Bucket: !Ref TemplateBucket
+        CodeS3Key: "binaries/rss/lambda/api/create/function.zip"
         OutPutTopicRssArn: !ImportValue RssSubscribeTopicArn
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
