@@ -21,12 +21,16 @@ Resources:
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
 
-  Resource:
-    Type: AWS::ApiGateway::Resource
-    Properties:
-      ParentId: !Ref VersionResourceArn
-      PathPart: rss
-      RestApiId: !Ref RestApiId
+  ResourceStack:
+      Type: "AWS::CloudFormation::Stack"
+      Properties:
+        TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/application/api/api-gateway-resource-template-path.yaml"
+        Parameters:
+          RestApiId: !Ref RestApiId
+          ParentId: !Ref VersionResourceArn
+          PathPart: rss
+      DeletionPolicy: Delete
+      UpdateReplacePolicy: Retain
 
   PostMethod:
     Type: "AWS::CloudFormation::Stack"
@@ -35,21 +39,11 @@ Resources:
       Parameters:
         HttpMethod: "POST"
         RestApiId: !Ref RestApiId
-        ResourceId: !Ref Resource
+        ResourceId: !GetAtt ResourceStack.Outputs.ResourceArn
         LambdaArn: !GetAtt  LambdaRssCreateStack.Outputs.Arn
-    DeletionPolicy: Delete
-    UpdateReplacePolicy: Retain
-
-  OptionsMethod:
-    Type: "AWS::CloudFormation::Stack"
-    Properties:
-      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/application/api/api-gateway-option-method.yaml"
-      Parameters:
-        RestApiId: !Ref RestApiId
-        ResourceId: !Ref Resource
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
 
 Outputs:
   ResourceArn:
-    Value: !Ref Resource
+    Value: !GetAtt ResourceStack.Outputs.ResourceArn
