@@ -11,19 +11,6 @@ Parameters:
     Type: String
 
 Resources:
-  LambdaRssCreateStack:
-    Type: "AWS::CloudFormation::Stack"
-    Properties:
-      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/application/api/lambda-template.yaml"
-      Parameters:
-        FunctionName: "RssCreateFunction"
-        LambdaRoleArn: !Ref LambdaRoleArn
-        CodeS3Bucket: !Ref TemplateBucket
-        CodeS3Key: "binaries/rss/lambda/api/create/function.zip"
-        OutPutTopicRssArn: !ImportValue RssSubscribeTopicArn
-    DeletionPolicy: Delete
-    UpdateReplacePolicy: Retain
-
   ResourceStack:
       Type: "AWS::CloudFormation::Stack"
       Properties:
@@ -35,15 +22,19 @@ Resources:
       DeletionPolicy: Delete
       UpdateReplacePolicy: Retain
 
-  PostMethod:
+  PostMethodStack:
     Type: "AWS::CloudFormation::Stack"
     Properties:
-      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/application/api/api-gateway-method.yaml"
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/application/api/api-gateway-resource-template-method.yaml"
       Parameters:
-        HttpMethod: "POST"
         RestApiId: !Ref RestApiId
         ResourceId: !GetAtt ResourceStack.Outputs.ResourceArn
-        LambdaArn: !GetAtt  LambdaRssCreateStack.Outputs.Arn
+        HttpMethod: "POST"
+        FunctionName: "RssCreateFunction"
+        LambdaRoleArn: !Ref LambdaRoleArn
+        CodeS3Bucket: !Ref TemplateBucket
+        CodeS3Key: "binaries/rss/lambda/api/create/function.zip"
+        OutPutTopicRssArn: !ImportValue RssSubscribeTopicArn
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
 
