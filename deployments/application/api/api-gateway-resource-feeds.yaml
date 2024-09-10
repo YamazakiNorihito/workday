@@ -14,7 +14,7 @@ Resources:
   ResourceStack:
       Type: "AWS::CloudFormation::Stack"
       Properties:
-        TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/application/api/api-gateway-resource-template-path.yaml"
+        TemplateURL: !Sub "https://${TemplateBucket}.s3.${AWS::Region}.amazonaws.com/application/api/api-gateway-resource-template-path.yaml"
         Parameters:
           RestApiId: !Ref RestApiId
           ParentId: !Ref VersionResourceArn
@@ -25,7 +25,7 @@ Resources:
   PostMethodStack:
     Type: "AWS::CloudFormation::Stack"
     Properties:
-      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/application/api/api-gateway-resource-template-method.yaml"
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.${AWS::Region}.amazonaws.com/application/api/api-gateway-resource-template-method.yaml"
       Parameters:
         RestApiId: !Ref RestApiId
         ResourceId: !GetAtt ResourceStack.Outputs.ResourceArn

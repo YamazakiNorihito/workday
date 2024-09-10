@@ -8,7 +8,7 @@ Resources:
   EventStack:
     Type: "AWS::CloudFormation::Stack"
     Properties:
-      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/application/event/template.yaml"
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.${AWS::Region}.amazonaws.com/application/event/template.yaml"
       Parameters:
         TemplateBucket: !Ref TemplateBucket
         TranslateApiUrl: !Ref TranslateApiUrl
@@ -17,7 +17,7 @@ Resources:
   APIStack:
     Type: "AWS::CloudFormation::Stack"
     Properties:
-      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/application/api/template.yaml"
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.${AWS::Region}.amazonaws.com/application/api/template.yaml"
       Parameters:
         TemplateBucket: !Ref TemplateBucket
     DeletionPolicy: Delete

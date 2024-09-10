@@ -8,14 +8,14 @@ Resources:
   ApiGatewayStack:
     Type: "AWS::CloudFormation::Stack"
     Properties:
-      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/application/api/api-gateway-resource.yaml"
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.${AWS::Region}.amazonaws.com/application/api/api-gateway-resource.yaml"
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
 
   RssResourceRootStack:
     Type: "AWS::CloudFormation::Stack"
     Properties:
-      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/application/api/api-gateway-resource-feeds.yaml"
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.${AWS::Region}.amazonaws.com/application/api/api-gateway-resource-feeds.yaml"
       Parameters:
         TemplateBucket: !Ref TemplateBucket
         LambdaRoleArn: !ImportValue LambdaRoleArn
@@ -27,7 +27,7 @@ Resources:
   DeploymentStack:
     Type: "AWS::CloudFormation::Stack"
     Properties:
-      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/application/api/api-gateway-deployment.yaml"
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.${AWS::Region}.amazonaws.com/application/api/api-gateway-deployment.yaml"
       Parameters:
         RestApiId: !GetAtt ApiGatewayStack.Outputs.RestApiId
     DeletionPolicy: Delete

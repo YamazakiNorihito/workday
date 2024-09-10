@@ -10,24 +10,24 @@ Resources:
   DynamoDBStack:
     Type: "AWS::CloudFormation::Stack"
     Properties:
-      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/dynamodb/template.yaml"
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.${AWS::Region}.amazonaws.com/dynamodb/template.yaml"
 
   S3Stack:
     Type: "AWS::CloudFormation::Stack"
     Properties:
-      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/s3/template.yaml"
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.${AWS::Region}.amazonaws.com/s3/template.yaml"
 
   SNSStack:
     Type: "AWS::CloudFormation::Stack"
     Properties:
-      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/sns/template.yaml"
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.${AWS::Region}.amazonaws.com/sns/template.yaml"
       Parameters:
         TemplateBucket: !Ref TemplateBucket
 
   IAMStack:
     Type: "AWS::CloudFormation::Stack"
     Properties:
-      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/iam/template.yaml"
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.${AWS::Region}.amazonaws.com/iam/template.yaml"
       Parameters:
         TemplateBucket: !Ref TemplateBucket
     DependsOn: 
@@ -38,7 +38,7 @@ Resources:
   ApplicationStack:
     Type: "AWS::CloudFormation::Stack"
     Properties:
-      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/application/template.yaml"
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.${AWS::Region}.amazonaws.com/application/template.yaml"
       Parameters:
         TemplateBucket: !Ref TemplateBucket
         TranslateApiUrl: !Ref TranslateApiUrl
