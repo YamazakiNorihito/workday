@@ -5,6 +5,22 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "RSS basic DebugSetting",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${fileDirname}",
+            "env": {
+                "ENV" : "myhost",
+                "OUTPUT_TOPIC_RSS_ARN": "arn:aws:sns:us-east-1:000000000000:rss-write",
+                "BATCH_SIZE": "5",
+                "AWS_REGION_CODE": "us-west-2",
+                "DYNAMODB_ENDPOINT": "http://localhost:8000",
+                "AWS_ACCESS_KEY_ID": "dummy",
+                "AWS_SECRET_ACCESS_KEY": "dummy"
+            }
+        },
+        {
             "name": "RSS Trigger DebugSetting",
             "type": "go",
             "request": "launch",

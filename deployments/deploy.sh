@@ -19,7 +19,7 @@ done
 SRC_DIR="./../cmd/rss/lambda/"
 BIN_DIR="./binaries/rss/lambda/"
 
-LAMBDA_DIRS=("event/notification" "event/subscribe" "event/trigger" "event/write" "event/translate" "event/clean" "api/create")
+LAMBDA_DIRS=("event/notification" "event/subscribe" "event/trigger" "event/write" "event/translate" "event/clean" "api/create" "api/feeds")
 
 if [ "$NO_BUILD" = false ]; then
     for dir in "${LAMBDA_DIRS[@]}"; do
