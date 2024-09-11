@@ -144,3 +144,13 @@ Content-Type: application/json
   "feed_url": "https://github.blog/feed/",
   "source_language_code": "en"
 }
+
+### create
+POST {{base_uri}}/api/v1/rss
+Content-Type: application/json
+
+{
+  "feed_url": "https://dev.to/feed",
+  "source_language_code": "en"
+}
+
