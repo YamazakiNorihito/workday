@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/credentials"
 )
 
 func LoadConfig(ctx context.Context) AwsConfig {
@@ -13,14 +12,6 @@ func LoadConfig(ctx context.Context) AwsConfig {
 
 	if region := os.Getenv("AWS_REGION_CODE"); region != "" {
 		optFns = append(optFns, config.WithRegion(region))
-	}
-
-	if accessKey := os.Getenv("AWS_ACCESS_KEY_ID"); accessKey != "" {
-		secretKey := os.Getenv("AWS_SECRET_ACCESS_KEY")
-		optFns = append(optFns, func(o *config.LoadOptions) error {
-			o.Credentials = credentials.NewStaticCredentialsProvider(accessKey, secretKey, "")
-			return nil
-		})
 	}
 
 	cfg, err := config.LoadDefaultConfig(ctx, optFns...)
