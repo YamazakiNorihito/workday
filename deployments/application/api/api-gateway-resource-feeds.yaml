@@ -22,6 +22,21 @@ Resources:
       DeletionPolicy: Delete
       UpdateReplacePolicy: Retain
 
+  GetMethodStack:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.${AWS::Region}.amazonaws.com/application/api/api-gateway-resource-template-method.yaml"
+      Parameters:
+        RestApiId: !Ref RestApiId
+        ResourceId: !GetAtt ResourceStack.Outputs.ResourceArn
+        HttpMethod: "GET"
+        FunctionName: "RssFeedsFunction"
+        LambdaRoleArn: !Ref LambdaRoleArn
+        CodeS3Bucket: !Ref TemplateBucket
+        CodeS3Key: "binaries/rss/lambda/api/feeds/function.zip"
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
+
   PostMethodStack:
     Type: "AWS::CloudFormation::Stack"
     Properties:

@@ -1,5 +1,5 @@
 # develop
-@base_uri=https://i5hw5g9m6j.execute-api.us-east-1.amazonaws.com/develop
+@base_uri=https://hsjxap8uf9.execute-api.us-east-1.amazonaws.com/develop
 
 ### create
 POST {{base_uri}}/api/v1/rss
@@ -154,3 +154,7 @@ Content-Type: application/json
   "source_language_code": "en"
 }
 
+
+### get feeds
+GET {{base_uri}}/api/v1/rss
+Content-Type: application/json
