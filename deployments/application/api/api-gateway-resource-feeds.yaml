@@ -1,0 +1,43 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+  TemplateBucket:
+    Type: String
+    Description: "The S3 bucket where the templates are stored"
+  LambdaRoleArn:
+    Type: String
+  RestApiId:
+    Type: String
+  VersionResourceArn:
+    Type: String
+
+Resources:
+  ResourceStack:
+      Type: "AWS::CloudFormation::Stack"
+      Properties:
+        TemplateURL: !Sub "https://${TemplateBucket}.s3.${AWS::Region}.amazonaws.com/application/api/api-gateway-resource-template-path.yaml"
+        Parameters:
+          RestApiId: !Ref RestApiId
+          ParentId: !Ref VersionResourceArn
+          PathPart: rss
+      DeletionPolicy: Delete
+      UpdateReplacePolicy: Retain
+
+  PostMethodStack:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.${AWS::Region}.amazonaws.com/application/api/api-gateway-resource-template-method.yaml"
+      Parameters:
+        RestApiId: !Ref RestApiId
+        ResourceId: !GetAtt ResourceStack.Outputs.ResourceArn
+        HttpMethod: "POST"
+        FunctionName: "RssCreateFunction"
+        LambdaRoleArn: !Ref LambdaRoleArn
+        CodeS3Bucket: !Ref TemplateBucket
+        CodeS3Key: "binaries/rss/lambda/api/create/function.zip"
+        OutPutTopicRssArn: !ImportValue RssSubscribeTopicArn
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
+
+Outputs:
+  ResourceArn:
+    Value: !GetAtt ResourceStack.Outputs.ResourceArn

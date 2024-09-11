@@ -2,15 +2,24 @@ AWSTemplateFormatVersion: '2010-09-09'
 Parameters:
   RestApiId:
     Type: String
-  ResourceId:
+  ParentId:
+    Type: String
+  PathPart:
     Type: String
 
 Resources:
-  Method:
+  Resource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref RestApiId
+      ParentId: !Ref ParentId
+      PathPart: !Ref PathPart
+
+  OptionsMethod:
     Type: AWS::ApiGateway::Method
     Properties:
       RestApiId: !Ref RestApiId
-      ResourceId: !Ref ResourceId
+      ResourceId: !Ref Resource
       HttpMethod: "OPTIONS"
       AuthorizationType: NONE
       Integration:
@@ -31,3 +40,7 @@ Resources:
             method.response.header.Access-Control-Allow-Origin: true
             method.response.header.Access-Control-Allow-Headers: true
             method.response.header.Access-Control-Allow-Methods: true
+
+Outputs:
+  ResourceArn:
+    Value: !Ref Resource
