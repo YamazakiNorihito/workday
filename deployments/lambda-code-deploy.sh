@@ -2,8 +2,13 @@
 
 set -euo pipefail
 
+# shellcheck disable=SC1091
+source ./config.sh
+
 # Build and package functions
-for dir in "${LAMBDA_DIRS[@]}"; do
+# shellcheck disable=SC2154
+for FUNCTION in "${FUNCTIONs[@]}"; do
+    dir="${FUNCTION#*:}"
     echo "Building Lambda function in $dir..."
     make -C "$SRC_DIR/$dir" build
     
@@ -22,7 +27,8 @@ aws s3 sync binaries "s3://${BUCKET}/binaries" --exclude "deploy*" --profile "${
 # shellcheck disable=SC2154
 for FUNCTION in "${FUNCTIONs[@]}"; do
     function_name="${FUNCTION%%:*}"
-    s3_key="${FUNCTION#*:}"
+    dir="${FUNCTION#*:}"
+    s3_key="${BIN_DIR#./}${dir}/function.zip"
 
     echo "Updating Lambda function $function_name with S3 key $s3_key..."
     aws lambda update-function-code \

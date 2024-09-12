@@ -20,7 +20,9 @@ done
 # Create execute file
 # -----------------------------
 if [ "$NO_BUILD" = false ]; then
-    for dir in "${LAMBDA_DIRS[@]}"; do
+    # shellcheck disable=SC2154
+    for FUNCTION in "${FUNCTIONs[@]}"; do
+        dir="${FUNCTION#*:}"
         echo "Building Lambda function in $dir..."
         make -C "$SRC_DIR/$dir" build
         

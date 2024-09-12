@@ -10,14 +10,13 @@ GAS_TRANALATE_API="https://script.google.com/macros/s/AKfycbwrnNBNPJ94-HGK-Ske-a
 
 SRC_DIR="./../cmd/rss/lambda/"
 BIN_DIR="./binaries/rss/lambda/"
-LAMBDA_DIRS=("event/notification" "event/subscribe" "event/trigger" "event/write" "event/translate" "event/clean" "api/create" "api/feeds")
 
 # Function names and corresponding S3 keys
-FUNCTIONs=("RssNotificationFunction:binaries/rss/lambda/event/notification/function.zip"
-        "RssSubscribeFunction:binaries/rss/lambda/event/subscribe/function.zip"
-        "RssTriggerFunction:binaries/rss/lambda/event/trigger/function.zip"
-        "RssWriteFunction:binaries/rss/lambda/event/write/function.zip"
-        "RssTranslateFunction:binaries/rss/lambda/event/translate/function.zip"
-        "RssCleanFunction:binaries/rss/lambda/event/clean/function.zip"
-        "RssCreateFunction:binaries/rss/lambda/api/create/function.zip"
-        "RssFeedsFunction:binaries/rss/lambda/api/feeds/function.zip")
+FUNCTIONs=("RssNotificationFunction:event/notification"
+        "RssSubscribeFunction:event/subscribe"
+        "RssTriggerFunction:event/trigger"
+        "RssWriteFunction:event/write"
+        "RssTranslateFunction:event/translate"
+        "RssCleanFunction:event/clean"
+        "RssCreateFunction:api/create"
+        "RssFeedsFunction:api/feeds")
