@@ -44,27 +44,10 @@ PROFILE="workday"
 BUCKET="nybeyond-com-deploy"
 REGION="us-east-1"
 # -----------------------------
-# Create Deploy S3
+# Create S3 Bucket for Deployment
 # -----------------------------
-if ! aws s3 ls "s3://${BUCKET}" --profile "${PROFILE}" ; then
-  echo "バケットが存在しません。新しいバケットを作成します: ${BUCKET}"
-  aws s3 mb "s3://${BUCKET}" --region "${REGION}" --profile "${PROFILE}"
-  echo "バケットが完全に動作するのを待っています..."
-  sleep 10 
+./create_s3_bucket_if_not_exists.sh "${BUCKET}" "${REGION}" "${PROFILE}"
 
-  max_retries=5
-  count=0
-  until aws s3api put-bucket-policy --bucket "${BUCKET}" --policy file://deploy-bucket-policy.json --profile "${PROFILE}"
-  do
-    count=$((count+1))
-    if [ "${count}" -eq "${max_retries}" ]; then
-      echo "Failed to apply policy after ${max_retries} attempts."
-      exit 1
-    fi
-    echo "Retrying to apply policy...attempt ${count}"
-    sleep 10
-  done
-fi
 # テンプレートをS3にアップロード
 aws s3 sync . "s3://${BUCKET}/" --exclude "deploy*" --profile "${PROFILE}"
 
