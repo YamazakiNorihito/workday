@@ -2,13 +2,13 @@
 
 set -euo pipefail
 
-# Directories
-SRC_DIR="./../cmd/rss/lambda/"
-BIN_DIR="./binaries/rss/lambda/"
-LAMBDA_DIRS=("event/notification" "event/subscribe" "event/trigger" "event/write" "event/translate" "event/clean" "api/create" "api/feeds")
+# shellcheck disable=SC1091
+source ./config.sh
 
 # Build and package functions
-for dir in "${LAMBDA_DIRS[@]}"; do
+# shellcheck disable=SC2154
+for FUNCTION in "${FUNCTIONs[@]}"; do
+    dir="${FUNCTION#*:}"
     echo "Building Lambda function in $dir..."
     make -C "$SRC_DIR/$dir" build
     
@@ -21,26 +21,14 @@ done
 
 echo "Build process complete."
 
-# AWS Settings
-PROFILE="workday"
-BUCKET="nybeyond-com-deploy"
-REGION="us-east-1"
 aws s3 sync binaries "s3://${BUCKET}/binaries" --exclude "deploy*" --profile "${PROFILE}"
 
-# Function names and corresponding S3 keys
-FUNCTIONs=("RssNotificationFunction:binaries/rss/lambda/event/notification/function.zip"
-        "RssSubscribeFunction:binaries/rss/lambda/event/subscribe/function.zip"
-        "RssTriggerFunction:binaries/rss/lambda/event/trigger/function.zip"
-        "RssWriteFunction:binaries/rss/lambda/event/write/function.zip"
-        "RssTranslateFunction:binaries/rss/lambda/event/translate/function.zip"
-        "RssCleanFunction:binaries/rss/lambda/event/clean/function.zip"
-        "RssCreateFunction:binaries/rss/lambda/api/create/function.zip"
-        "RssFeedsFunction:binaries/rss/lambda/api/feeds/function.zip")
-
 # Update Lambda functions
+# shellcheck disable=SC2154
 for FUNCTION in "${FUNCTIONs[@]}"; do
     function_name="${FUNCTION%%:*}"
-    s3_key="${FUNCTION#*:}"
+    dir="${FUNCTION#*:}"
+    s3_key="${BIN_DIR#./}${dir}/function.zip"
 
     echo "Updating Lambda function $function_name with S3 key $s3_key..."
     aws lambda update-function-code \
