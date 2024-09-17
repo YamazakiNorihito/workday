@@ -17,6 +17,7 @@ type Rss struct {
 	Language      string            `json:"language"`
 	LastBuildDate time.Time         `json:"last_build_date"`
 	Items         map[Guid]Item     `json:"items"`
+	ItemFilter    ItemFilter        `json:"item_filter"`
 	CreatedBy     metadata.CreateBy `json:"create_by"`
 	CreatedAt     metadata.CreateAt `json:"create_at"`
 	UpdatedBy     metadata.UpdateBy `json:"update_by"`
@@ -55,4 +56,8 @@ func (r *Rss) SetLanguage(language string) error {
 
 func (r *Rss) AddOrUpdateItem(item Item) {
 	r.Items[item.Guid] = item
+}
+
+func (r *Rss) SetItemFilter(includeKeywords, excludeKeywords []string) {
+	r.ItemFilter = NewItemFilter(includeKeywords, excludeKeywords)
 }

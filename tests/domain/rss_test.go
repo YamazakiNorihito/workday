@@ -310,6 +310,10 @@ func TestRss_Serialize(t *testing.T) {
 		helper.MustSucceed(t, func() error {
 			var err error
 			test_rss, err = rss.New("Test Title", "Test Source", "http://example.com", "Test Description", "en", time.Date(2024, time.June, 1, 13, 30, 0, 0, time.UTC))
+
+			includeKeywords := []string{"go", "golang"}
+			excludeKeywords := []string{"python", "ruby"}
+			test_rss.SetItemFilter(includeKeywords, excludeKeywords)
 			return err
 		})
 
@@ -351,6 +355,10 @@ func TestRss_Serialize(t *testing.T) {
 					"pubDate":"2023-01-01T13:30:00Z",
 					"tags":["tag1","tag2"]
 				}
+			},
+			"item_filter":{
+				"include_keywords":["go","golang"],
+				"exclude_keywords":["python","ruby"]
 			},
 			"create_by":{"id":"","name":""},
 			"create_at":"0001-01-01T00:00:00Z",

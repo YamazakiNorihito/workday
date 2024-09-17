@@ -30,6 +30,10 @@ func TestWriterMessagePublisher_Publish(t *testing.T) {
 				return err
 			}
 
+			includeKeywords := []string{"go", "golang"}
+			excludeKeywords := []string{"python", "ruby"}
+			test_rss.SetItemFilter(includeKeywords, excludeKeywords)
+
 			dummy_item, err := rss.NewItem(rss.Guid{Value: "http://www.example.com/dummy-guid1"}, "ダミー記事1", "http://www.example.com/dummy-article1", "これはダミー記事1の概要です。詳細はリンクをクリックしてください。", "item1@dummy.com", time.Date(2024, time.July, 3, 12, 0, 0, 0, time.UTC))
 			if err != nil {
 				return err
@@ -66,6 +70,10 @@ func TestWriterMessagePublisher_Publish(t *testing.T) {
 				  "pubDate": "2024-07-03T12:00:00Z",
 				  "tags": []
 				}
+			  },
+			  "item_filter":{
+			  	"include_keywords":["go","golang"],
+				"exclude_keywords":["python","ruby"]
 			  },
 			  "create_by": {
 				"id": "",
