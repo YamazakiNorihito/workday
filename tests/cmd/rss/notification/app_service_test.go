@@ -69,12 +69,10 @@ func TestAppService_Notification(t *testing.T) {
 1. *記事タイトル:* <http://www.example.com/dummy-article1|ダミー記事1>
     *公開日:* 2024-07-03T12:00:00Z
     *概要:* これはダミー記事1の概要です。詳細はリンクをクリックしてください。
-    *カテゴリ:* 
 
 2. *記事タイトル:* <http://www.example.com/dummy-article2|ダミー記事2>
     *公開日:* 2024-07-03T12:30:00Z
     *概要:* これはダミー記事2の概要です。詳細はリンクをクリックしてください。
-    *カテゴリ:* 
 
 `, act_call.Text)
 	})
@@ -151,7 +149,6 @@ func TestAppService_Notification(t *testing.T) {
 1. *記事タイトル:* <http://www.example.com/dummy-article2|ダミー記事2>
     *公開日:* 2024-07-03T12:30:00Z
     *概要:* これはダミー記事2の概要です。詳細はリンクをクリックしてください。
-    *カテゴリ:* 
 
 `, act_call.Text)
 	})

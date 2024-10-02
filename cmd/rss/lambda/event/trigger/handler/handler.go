@@ -17,22 +17,6 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 )
 
-type feedProvider struct {
-	repo *rss.DynamoDBRssRepository
-}
-
-func (r *feedProvider) GetFeedURLAndLanguage(ctx context.Context) (map[string]string, error) {
-	feeds, err := r.repo.FindAll(ctx)
-	if err != nil {
-		return nil, err
-	}
-	feedMap := make(map[string]string)
-	for _, feed := range feeds {
-		feedMap[feed.Link] = feed.Language
-	}
-	return feedMap, nil
-}
-
 type executer func(ctx context.Context, logger infrastructure.Logger) error
 
 func Handler(ctx context.Context, event events.EventBridgeEvent) error {
@@ -56,10 +40,9 @@ func Handler(ctx context.Context, event events.EventBridgeEvent) error {
 
 	dynamodbClient := cfg.NewDynamodbClient()
 	rssRepository := rss.NewDynamoDBRssRepository(dynamodbClient)
-	feedProvider := feedProvider{repo: rssRepository}
 
 	executer := func(ctx context.Context, logger infrastructure.Logger) error {
-		return app_service.Execute(ctx, logger, *publisher, throttleConfig, &feedProvider)
+		return app_service.Execute(ctx, logger, *publisher, throttleConfig, rssRepository)
 	}
 
 	err = processRecord(ctx, logger, event, executer)

@@ -38,6 +38,7 @@ func New(title, source, link, description, language string, lastBuildDate time.T
 		Language:      language,
 		LastBuildDate: lastBuildDate,
 		Items:         make(map[Guid]Item),
+		ItemFilter:    NewItemFilter(nil, nil),
 	}, nil
 }
 
