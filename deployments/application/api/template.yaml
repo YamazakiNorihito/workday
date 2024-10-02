@@ -24,6 +24,18 @@ Resources:
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
 
+  RssResourceFeedIdStack:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.${AWS::Region}.amazonaws.com/application/api/api-gateway-resource-feed-id.yaml"
+      Parameters:
+        TemplateBucket: !Ref TemplateBucket
+        LambdaRoleArn: !ImportValue LambdaRoleArn
+        RestApiId: !GetAtt ApiGatewayStack.Outputs.RestApiId
+        feedsResourceArn: !GetAtt RssResourceRootStack.Outputs.ResourceArn
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
+
   DeploymentStack:
     Type: "AWS::CloudFormation::Stack"
     Properties:
@@ -34,3 +46,4 @@ Resources:
     UpdateReplacePolicy: Retain
     DependsOn:
       - RssResourceRootStack
+      - RssResourceFeedIdStack

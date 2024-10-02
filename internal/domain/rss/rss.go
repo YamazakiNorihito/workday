@@ -55,7 +55,9 @@ func (r *Rss) SetLanguage(language string) error {
 }
 
 func (r *Rss) AddOrUpdateItem(item Item) {
-	r.Items[item.Guid] = item
+	if r.ItemFilter.IsMatch(item) {
+		r.Items[item.Guid] = item
+	}
 }
 
 func (r *Rss) SetItemFilter(includeKeywords, excludeKeywords []string) {
