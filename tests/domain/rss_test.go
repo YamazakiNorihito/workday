@@ -301,6 +301,155 @@ func TestRss_AddOrUpdateItem(t *testing.T) {
 		assert.Equal(t, "Updated Author", item.Author)
 		assert.Equal(t, time.Date(2024, time.January, 1, 13, 30, 0, 0, time.UTC), item.PubDate)
 	})
+
+	t.Run("should add item when item matches include keywords", func(t *testing.T) {
+		// Arrange
+		var test_rss rss.Rss
+		helper.MustSucceed(t, func() error {
+			var err error
+			test_rss, err = rss.New("Test Title", "Test Source", "http://example.com", "Test Description", "en", time.Date(2024, time.June, 1, 13, 30, 0, 0, time.UTC))
+			return err
+		})
+		test_rss.SetItemFilter([]string{"include_keyword"}, nil)
+
+		var test_item rss.Item
+		helper.MustSucceed(t, func() error {
+			var err error
+			test_item, err = rss.NewItem(rss.Guid{Value: "guid-12345"}, "This title contains include_keyword", "http://example.com", "Test description", "Test Author", time.Date(2023, time.June, 1, 13, 30, 0, 0, time.UTC))
+			return err
+		})
+
+		// Act
+		test_rss.AddOrUpdateItem(test_item)
+
+		// Assert
+		assert.Len(t, test_rss.Items, 1)
+		item, exists := test_rss.Items[rss.Guid{Value: "guid-12345"}]
+		if !exists {
+			t.Fatalf("expected item with guid 'guid-12345' to be present")
+		}
+		assert.Equal(t, "This title contains include_keyword", item.Title)
+	})
+
+	t.Run("should not add item when item does not match include keywords", func(t *testing.T) {
+		// Arrange
+		var test_rss rss.Rss
+		helper.MustSucceed(t, func() error {
+			var err error
+			test_rss, err = rss.New("Test Title", "Test Source", "http://example.com", "Test Description", "en", time.Date(2024, time.June, 1, 13, 30, 0, 0, time.UTC))
+			return err
+		})
+		test_rss.SetItemFilter([]string{"include_keyword"}, nil)
+
+		var test_item rss.Item
+		helper.MustSucceed(t, func() error {
+			var err error
+			test_item, err = rss.NewItem(rss.Guid{Value: "guid-12345"}, "No matching keyword in title", "http://example.com", "Test description", "Test Author", time.Date(2023, time.June, 1, 13, 30, 0, 0, time.UTC))
+			return err
+		})
+
+		// Act
+		test_rss.AddOrUpdateItem(test_item)
+
+		// Assert
+		assert.Len(t, test_rss.Items, 0)
+	})
+
+	t.Run("should not add item when item matches exclude keywords", func(t *testing.T) {
+		// Arrange
+		var test_rss rss.Rss
+		helper.MustSucceed(t, func() error {
+			var err error
+			test_rss, err = rss.New("Test Title", "Test Source", "http://example.com", "Test Description", "en", time.Date(2024, time.June, 1, 13, 30, 0, 0, time.UTC))
+			return err
+		})
+		test_rss.SetItemFilter(nil, []string{"exclude_keyword"})
+
+		var test_item rss.Item
+		helper.MustSucceed(t, func() error {
+			var err error
+			test_item, err = rss.NewItem(rss.Guid{Value: "guid-12345"}, "This title contains exclude_keyword", "http://example.com", "Test description", "Test Author", time.Date(2023, time.June, 1, 13, 30, 0, 0, time.UTC))
+			return err
+		})
+
+		// Act
+		test_rss.AddOrUpdateItem(test_item)
+
+		// Assert
+		assert.Len(t, test_rss.Items, 0)
+	})
+
+	t.Run("should add item when ItemFilter is empty", func(t *testing.T) {
+		// Arrange
+		var test_rss rss.Rss
+		helper.MustSucceed(t, func() error {
+			var err error
+			test_rss, err = rss.New("Test Title", "Test Source", "http://example.com", "Test Description", "en", time.Date(2024, time.June, 1, 13, 30, 0, 0, time.UTC))
+			return err
+		})
+		// No filters set
+
+		var test_item rss.Item
+		helper.MustSucceed(t, func() error {
+			var err error
+			test_item, err = rss.NewItem(rss.Guid{Value: "guid-12345"}, "Test Title", "http://example.com", "Test description", "Test Author", time.Date(2023, time.June, 1, 13, 30, 0, 0, time.UTC))
+			return err
+		})
+
+		// Act
+		test_rss.AddOrUpdateItem(test_item)
+
+		// Assert
+		assert.Len(t, test_rss.Items, 1)
+	})
+
+	t.Run("should add item when item matches include and does not match exclude keywords", func(t *testing.T) {
+		// Arrange
+		var test_rss rss.Rss
+		helper.MustSucceed(t, func() error {
+			var err error
+			test_rss, err = rss.New("Test Title", "Test Source", "http://example.com", "Test Description", "en", time.Date(2024, time.June, 1, 13, 30, 0, 0, time.UTC))
+			return err
+		})
+		test_rss.SetItemFilter([]string{"include_keyword"}, []string{"exclude_keyword"})
+
+		var test_item rss.Item
+		helper.MustSucceed(t, func() error {
+			var err error
+			test_item, err = rss.NewItem(rss.Guid{Value: "guid-12345"}, "This title contains include_keyword", "http://example.com", "Test description without exclude_keyword", "Test Author", time.Date(2023, time.June, 1, 13, 30, 0, 0, time.UTC))
+			return err
+		})
+
+		// Act
+		test_rss.AddOrUpdateItem(test_item)
+
+		// Assert
+		assert.Len(t, test_rss.Items, 0)
+	})
+
+	t.Run("should not add item when item matches include and exclude keywords", func(t *testing.T) {
+		// Arrange
+		var test_rss rss.Rss
+		helper.MustSucceed(t, func() error {
+			var err error
+			test_rss, err = rss.New("Test Title", "Test Source", "http://example.com", "Test Description", "en", time.Date(2024, time.June, 1, 13, 30, 0, 0, time.UTC))
+			return err
+		})
+		test_rss.SetItemFilter([]string{"include_keyword"}, []string{"exclude_keyword"})
+
+		var test_item rss.Item
+		helper.MustSucceed(t, func() error {
+			var err error
+			test_item, err = rss.NewItem(rss.Guid{Value: "guid-12345"}, "This title contains include_keyword and exclude_keyword", "http://example.com", "Test description", "Test Author", time.Date(2023, time.June, 1, 13, 30, 0, 0, time.UTC))
+			return err
+		})
+
+		// Act
+		test_rss.AddOrUpdateItem(test_item)
+
+		// Assert
+		assert.Len(t, test_rss.Items, 0)
+	})
 }
 
 func TestRss_Serialize(t *testing.T) {
@@ -310,13 +459,17 @@ func TestRss_Serialize(t *testing.T) {
 		helper.MustSucceed(t, func() error {
 			var err error
 			test_rss, err = rss.New("Test Title", "Test Source", "http://example.com", "Test Description", "en", time.Date(2024, time.June, 1, 13, 30, 0, 0, time.UTC))
+
+			includeKeywords := []string{"go", "golang"}
+			excludeKeywords := []string{"python", "ruby"}
+			test_rss.SetItemFilter(includeKeywords, excludeKeywords)
 			return err
 		})
 
 		var original_item rss.Item
 		helper.MustSucceed(t, func() error {
 			var err error
-			original_item, err = rss.NewItem(rss.Guid{Value: "guid-12345"}, "Original Title", "http://example.com/original", "Original description", "Original Author", time.Date(2023, time.January, 1, 13, 30, 0, 0, time.UTC))
+			original_item, err = rss.NewItem(rss.Guid{Value: "guid-12345"}, "Original Title-go", "http://example.com/original", "Original description", "Original Author", time.Date(2023, time.January, 1, 13, 30, 0, 0, time.UTC))
 			if err != nil {
 				return err
 			}
@@ -344,13 +497,17 @@ func TestRss_Serialize(t *testing.T) {
 			"items":{
 				"guid-12345":{
 					"guid":"guid-12345",
-					"title":"Original Title",
+					"title":"Original Title-go",
 					"link":"http://example.com/original",
 					"description":"Original description",
 					"author":"Original Author",
 					"pubDate":"2023-01-01T13:30:00Z",
 					"tags":["tag1","tag2"]
 				}
+			},
+			"item_filter":{
+				"include_keywords":["go","golang"],
+				"exclude_keywords":["python","ruby"]
 			},
 			"create_by":{"id":"","name":""},
 			"create_at":"0001-01-01T00:00:00Z",

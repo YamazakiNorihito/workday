@@ -19,4 +19,5 @@ FUNCTIONs=("RssNotificationFunction:event/notification"
         "RssTranslateFunction:event/translate"
         "RssCleanFunction:event/clean"
         "RssCreateFunction:api/create"
-        "RssFeedsFunction:api/feeds")
+        "RssFeedsFunction:api/feeds"
+        "RssFeedIdFunction:api/feed_id")
