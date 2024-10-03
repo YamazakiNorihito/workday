@@ -41,6 +41,8 @@ func Subscribe(ctx context.Context, logger infrastructure.Logger, feedRepository
 		return rss.Rss{}, err
 	}
 
+	rssEntry.SetItemFilter(feedRepository.ItemFilter().IncludeKeywords, feedRepository.ItemFilter().ExcludeKeywords)
+
 	for _, item := range feed.Items {
 		guid, err := getGuid(*item)
 		if err != nil {

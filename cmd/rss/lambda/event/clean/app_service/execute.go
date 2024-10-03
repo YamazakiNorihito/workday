@@ -32,6 +32,7 @@ func Clean(ctx context.Context, logger infrastructure.Logger, rssRepository rss.
 
 	existingRss.SetLanguage(rssEntry.Language)
 	existingRss.SetLastBuildDate(rssEntry.LastBuildDate)
+	existingRss.SetItemFilter(rssEntry.ItemFilter.IncludeKeywords, rssEntry.ItemFilter.ExcludeKeywords)
 	for _, item := range rssEntry.Items {
 		existingRss.AddOrUpdateItem(item)
 	}

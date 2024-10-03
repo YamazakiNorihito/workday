@@ -1,5 +1,5 @@
 # develop
-@base_uri=https://hsjxap8uf9.execute-api.us-east-1.amazonaws.com/develop
+@base_uri=https://q6y81bjm94.execute-api.us-east-1.amazonaws.com/develop
 
 ### create
 POST {{base_uri}}/api/v1/rss
@@ -79,7 +79,10 @@ Content-Type: application/json
 
 {
   "feed_url": "https://connpass.com/explore/ja.atom",
-  "source_language_code": "ja"
+  "source_language_code": "ja",
+   "item_filter": {
+    "exclude_keywords" : [".*会.*", ".*もくもく.*", ".*道場.*"]
+  }
 }
 
 ### create
@@ -157,4 +160,8 @@ Content-Type: application/json
 
 ### get feeds
 GET {{base_uri}}/api/v1/rss
+Content-Type: application/json
+
+### get feed
+GET {{base_uri}}/api/v1/rss/connpass.com
 Content-Type: application/json

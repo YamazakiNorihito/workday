@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/YamazakiNorihito/workday/internal/domain/rss"
 	"github.com/YamazakiNorihito/workday/internal/infrastructure"
+	"github.com/YamazakiNorihito/workday/pkg/rss/message"
 	"github.com/YamazakiNorihito/workday/pkg/rss/publisher"
 	"github.com/go-playground/validator/v10"
 )
@@ -29,6 +31,10 @@ func (ve *ValidationError) Errors() map[string]string {
 type CreateCommand struct {
 	FeedURL            string `validate:"required,url,startswith=http"`
 	SourceLanguageCode string `validate:"required,oneof=af sq am ar hy az bn bs bg ca zh zh-TW hr cs da fa-AF nl en et fa tl fi fr fr-CA ka de el gu ht ha he hi hu is id ga it ja kn kk ko lv lt mk ms ml mt mr mn no ps pl pt pt-PT pa ro ru sr si sk sl so es es-MX sw sv ta te th tr uk ur uz vi cy"`
+	ItemFilter         struct {
+		IncludeKeywords []string `json:"include_keywords"`
+		ExcludeKeywords []string `json:"exclude_keywords"`
+	} `json:"item_filter"`
 }
 
 func (c *CreateCommand) Validation(ctx context.Context) error {
@@ -82,5 +88,11 @@ func Trigger(ctx context.Context, logger infrastructure.Logger, publisher publis
 		return err
 	}
 
-	return publisher.Publish(ctx, command.FeedURL, command.SourceLanguageCode)
+	message := message.Subscribe{
+		FeedURL:    command.FeedURL,
+		Language:   command.SourceLanguageCode,
+		ItemFilter: rss.NewItemFilter(command.ItemFilter.IncludeKeywords, command.ItemFilter.ExcludeKeywords),
+	}
+
+	return publisher.Publish(ctx, message)
 }

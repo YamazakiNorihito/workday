@@ -27,7 +27,7 @@ func TestAppService_Subscribe(t *testing.T) {
   <language>ja</language>
 
   <item>
-    <title>ダミー記事1</title>
+    <title>Azureダミー記事1</title>
     <guid>http://www.example.com/dummy-guid1</guid>
     <link>http://www.example.com/dummy-article1</link>
     <description>これはダミー記事1の概要です。詳細はリンクをクリックしてください。</description>
@@ -36,7 +36,7 @@ func TestAppService_Subscribe(t *testing.T) {
   </item>
 
   <item>
-    <title>ダミー記事2</title>
+    <title>Azureダミー記事2</title>
     <guid>http://www.example.com/dummy-guid2</guid>
     <link>http://www.example.com/dummy-article2</link>
     <description>これはダミー記事2の概要です。詳細はリンクをクリックしてください。</description>
@@ -45,7 +45,7 @@ func TestAppService_Subscribe(t *testing.T) {
   </item>
 
   <item>
-    <title>ダミー記事3</title>
+    <title>Azureダミー記事3</title>
     <guid>http://www.example.com/dummy-guid3</guid>
     <link>http://www.example.com/dummy-article3</link>
     <description>これはダミー記事3の概要です。詳細はリンクをクリックしてください。</description>
@@ -64,7 +64,7 @@ func TestAppService_Subscribe(t *testing.T) {
 		logger := helper.MockLogger{}
 
 		client := server.Client()
-		repo := app_service.NewFeedRepository(client, server.URL, "ja")
+		repo := app_service.NewFeedRepository(client, server.URL, "ja", rss.NewItemFilter([]string{"Azure", "Cloud", "Microsoft"}, []string{"AWS", "Google Cloud"}))
 
 		// Act
 		act_rss, err := app_service.Subscribe(ctx, &logger, &repo)
@@ -81,12 +81,14 @@ func TestAppService_Subscribe(t *testing.T) {
 		assert.Equal(t, "ja", act_rss.Language)
 		assert.Equal(t, time.Date(2024, time.July, 3, 13, 0, 0, 0, time.UTC), act_rss.LastBuildDate)
 
+		assert.Equal(t, rss.NewItemFilter([]string{"Azure", "Cloud", "Microsoft"}, []string{"AWS", "Google Cloud"}), act_rss.ItemFilter)
+
 		assert.Len(t, act_rss.Items, 3)
 		// item1
 		{
 			item1 := act_rss.Items[rss.Guid{Value: "http://www.example.com/dummy-guid1"}]
 			assert.Equal(t, rss.Guid{Value: "http://www.example.com/dummy-guid1"}, item1.Guid)
-			assert.Equal(t, "ダミー記事1", item1.Title)
+			assert.Equal(t, "Azureダミー記事1", item1.Title)
 			assert.Equal(t, "http://www.example.com/dummy-article1", item1.Link)
 			assert.Equal(t, "これはダミー記事1の概要です。詳細はリンクをクリックしてください。", item1.Description)
 			assert.Equal(t, time.Date(2024, time.July, 3, 12, 0, 0, 0, time.UTC), item1.PubDate)
@@ -97,7 +99,7 @@ func TestAppService_Subscribe(t *testing.T) {
 		{
 			item2 := act_rss.Items[rss.Guid{Value: "http://www.example.com/dummy-guid2"}]
 			assert.Equal(t, rss.Guid{Value: "http://www.example.com/dummy-guid2"}, item2.Guid)
-			assert.Equal(t, "ダミー記事2", item2.Title)
+			assert.Equal(t, "Azureダミー記事2", item2.Title)
 			assert.Equal(t, "http://www.example.com/dummy-article2", item2.Link)
 			assert.Equal(t, "これはダミー記事2の概要です。詳細はリンクをクリックしてください。", item2.Description)
 			assert.Equal(t, time.Date(2024, time.July, 3, 12, 30, 0, 0, time.UTC), item2.PubDate)
@@ -108,7 +110,7 @@ func TestAppService_Subscribe(t *testing.T) {
 		{
 			item3 := act_rss.Items[rss.Guid{Value: "http://www.example.com/dummy-guid3"}]
 			assert.Equal(t, rss.Guid{Value: "http://www.example.com/dummy-guid3"}, item3.Guid)
-			assert.Equal(t, "ダミー記事3", item3.Title)
+			assert.Equal(t, "Azureダミー記事3", item3.Title)
 			assert.Equal(t, "http://www.example.com/dummy-article3", item3.Link)
 			assert.Equal(t, "これはダミー記事3の概要です。詳細はリンクをクリックしてください。", item3.Description)
 			assert.Equal(t, time.Date(2024, time.July, 3, 13, 0, 0, 0, time.UTC), item3.PubDate)

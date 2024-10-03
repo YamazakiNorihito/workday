@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/YamazakiNorihito/workday/cmd/rss/lambda/api/create/app_service"
+	"github.com/YamazakiNorihito/workday/internal/domain/rss"
 	"github.com/YamazakiNorihito/workday/pkg/rss/publisher"
 	"github.com/YamazakiNorihito/workday/tests/helper"
 	"github.com/stretchr/testify/assert"
@@ -101,6 +102,7 @@ func TestAppService_Trigger(t *testing.T) {
 		command := app_service.CreateCommand{
 			FeedURL:            "https://azure.microsoft.com/ja-jp/blog/feed",
 			SourceLanguageCode: "en",
+			ItemFilter:         rss.NewItemFilter([]string{"Azure", "Cloud", "Microsoft"}, []string{"AWS", "Google Cloud"}),
 		}
 
 		// Act
@@ -110,7 +112,7 @@ func TestAppService_Trigger(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Len(t, messageClient.Messages, 1)
 		assert.ElementsMatch(t, messageClient.Messages, []string{
-			"{\"feed_url\":\"https://azure.microsoft.com/ja-jp/blog/feed\",\"language\":\"en\"}",
+			"{\"feed_url\":\"https://azure.microsoft.com/ja-jp/blog/feed\",\"language\":\"en\",\"item_filter\":{\"include_keywords\":[\"Azure\",\"Cloud\",\"Microsoft\"],\"exclude_keywords\":[\"AWS\",\"Google Cloud\"]}}",
 		})
 	})
 }

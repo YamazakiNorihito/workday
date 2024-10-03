@@ -85,8 +85,8 @@ func makeMessage(r rss.Rss, itemFilter func(item rss.Item) bool) string {
 	for _, key := range keys {
 		item := filteredItems[rss.Guid{Value: key}]
 		truncatedDescription := truncate(item.Description)
-		messageBuilder.WriteString(fmt.Sprintf("%d. *記事タイトル:* <%s|%s>\n    *公開日:* %s\n    *概要:* %s\n    *カテゴリ:* %s\n\n",
-			i, item.Link, item.Title, item.PubDate.Format(time.RFC3339), truncatedDescription, strings.Join(item.Tags, ", ")))
+		messageBuilder.WriteString(fmt.Sprintf("%d. *記事タイトル:* <%s|%s>\n    *公開日:* %s\n    *概要:* %s\n\n",
+			i, item.Link, item.Title, item.PubDate.Format(time.RFC3339), truncatedDescription))
 		i++
 	}
 

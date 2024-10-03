@@ -19,6 +19,10 @@ import (
 type requestBody struct {
 	FeedURL            string `json:"feed_url"`
 	SourceLanguageCode string `json:"source_language_code"`
+	ItemFilter         struct {
+		IncludeKeywords []string `json:"include_keywords"`
+		ExcludeKeywords []string `json:"exclude_keywords"`
+	} `json:"item_filter"`
 }
 
 type executer func(ctx context.Context, logger infrastructure.Logger, command app_service.CreateCommand) error
@@ -49,6 +53,7 @@ func processRecord(ctx context.Context, logger infrastructure.Logger, executer e
 	cmd := app_service.CreateCommand{
 		FeedURL:            requestBody.FeedURL,
 		SourceLanguageCode: requestBody.SourceLanguageCode,
+		ItemFilter:         requestBody.ItemFilter,
 	}
 
 	err := executer(ctx, logger, cmd)
