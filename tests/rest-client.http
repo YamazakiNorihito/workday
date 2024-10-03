@@ -165,3 +165,14 @@ Content-Type: application/json
 ### get feed
 GET {{base_uri}}/api/v1/rss/connpass.com
 Content-Type: application/json
+
+### patch
+PATCH {{base_uri}}/api/v1/rss/connpass.com
+Content-Type: application/json
+
+{
+  "source_language_code": "ja",
+   "item_filter": {
+    "exclude_keywords" : [".*会.*", ".*もくもく.*", ".*道場.*", ".*セミナー.*", ".*(PHP|php).*"]
+  }
+}

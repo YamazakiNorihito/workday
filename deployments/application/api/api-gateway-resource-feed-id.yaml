@@ -37,6 +37,22 @@ Resources:
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
 
+  PathMethodStack:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.${AWS::Region}.amazonaws.com/application/api/api-gateway-resource-template-method.yaml"
+      Parameters:
+        RestApiId: !Ref RestApiId
+        ResourceId: !GetAtt ResourceStack.Outputs.ResourceArn
+        HttpMethod: "PATCH"
+        FunctionName: "RssPatchFunction"
+        LambdaRoleArn: !Ref LambdaRoleArn
+        CodeS3Bucket: !Ref TemplateBucket
+        CodeS3Key: "binaries/rss/lambda/api/patch/function.zip"
+        OutPutTopicRssArn: !ImportValue RssSubscribeTopicArn
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
+
 Outputs:
   ResourceArn:
     Value: !GetAtt ResourceStack.Outputs.ResourceArn

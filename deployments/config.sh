@@ -20,4 +20,5 @@ FUNCTIONs=("RssNotificationFunction:event/notification"
         "RssCleanFunction:event/clean"
         "RssCreateFunction:api/create"
         "RssFeedsFunction:api/feeds"
-        "RssFeedIdFunction:api/feed_id")
+        "RssFeedIdFunction:api/feed_id"
+        "RssPatchFunction:api/patch")
