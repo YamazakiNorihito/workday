@@ -60,3 +60,25 @@ func (f *ItemFilter) IsMatch(item Item) bool {
 
 	return true
 }
+
+func (f *ItemFilter) Equal(other ItemFilter) bool {
+	if len(f.IncludeKeywords) != len(other.IncludeKeywords) {
+		return false
+	}
+	for i, keyword := range f.IncludeKeywords {
+		if keyword != other.IncludeKeywords[i] {
+			return false
+		}
+	}
+
+	if len(f.ExcludeKeywords) != len(other.ExcludeKeywords) {
+		return false
+	}
+	for i, keyword := range f.ExcludeKeywords {
+		if keyword != other.ExcludeKeywords[i] {
+			return false
+		}
+	}
+
+	return true
+}

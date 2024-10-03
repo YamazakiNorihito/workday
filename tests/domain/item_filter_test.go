@@ -223,3 +223,65 @@ func TestItemFilter_Serialize(t *testing.T) {
 		assert.JSONEq(t, expectedJSON, string(jsonData))
 	})
 }
+
+func TestItemFilter_Equal(t *testing.T) {
+	t.Run("should return true when both ItemFilters are equal", func(t *testing.T) {
+		// Arrange
+		filter1 := rss.NewItemFilter([]string{"go", "golang"}, []string{"python", "ruby"})
+		filter2 := rss.NewItemFilter([]string{"go", "golang"}, []string{"python", "ruby"})
+
+		// Act
+		result := filter1.Equal(filter2)
+
+		// Assert
+		assert.True(t, result)
+	})
+
+	t.Run("should return false when IncludeKeywords are different", func(t *testing.T) {
+		// Arrange
+		filter1 := rss.NewItemFilter([]string{"go", "golang"}, []string{"python", "ruby"})
+		filter2 := rss.NewItemFilter([]string{"java", "golang"}, []string{"python", "ruby"})
+
+		// Act
+		result := filter1.Equal(filter2)
+
+		// Assert
+		assert.False(t, result)
+	})
+
+	t.Run("should return false when ExcludeKeywords are different", func(t *testing.T) {
+		// Arrange
+		filter1 := rss.NewItemFilter([]string{"go", "golang"}, []string{"python", "ruby"})
+		filter2 := rss.NewItemFilter([]string{"go", "golang"}, []string{"perl", "ruby"})
+
+		// Act
+		result := filter1.Equal(filter2)
+
+		// Assert
+		assert.False(t, result)
+	})
+
+	t.Run("should return false when lengths of IncludeKeywords are different", func(t *testing.T) {
+		// Arrange
+		filter1 := rss.NewItemFilter([]string{"go"}, []string{"python", "ruby"})
+		filter2 := rss.NewItemFilter([]string{"go", "golang"}, []string{"python", "ruby"})
+
+		// Act
+		result := filter1.Equal(filter2)
+
+		// Assert
+		assert.False(t, result)
+	})
+
+	t.Run("should return false when lengths of ExcludeKeywords are different", func(t *testing.T) {
+		// Arrange
+		filter1 := rss.NewItemFilter([]string{"go", "golang"}, []string{"python"})
+		filter2 := rss.NewItemFilter([]string{"go", "golang"}, []string{"python", "ruby"})
+
+		// Act
+		result := filter1.Equal(filter2)
+
+		// Assert
+		assert.False(t, result)
+	})
+}
