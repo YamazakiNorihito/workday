@@ -28,6 +28,7 @@ type rssModel struct {
 	Description   string            `dynamodbav:"description"`
 	Language      string            `dynamodbav:"language"`
 	LastBuildDate int64             `dynamodbav:"last_build_date"`
+	ItemFilter    itemFilterModel   `dynamodbav:"item_filter"`
 	CreatedBy     metadata.CreateBy `dynamodbav:"create_by"`
 	CreatedAt     int64             `dynamodbav:"create_at"`
 	UpdatedBy     metadata.UpdateBy `dynamodbav:"update_by"`
@@ -45,6 +46,11 @@ type itemModel struct {
 	Author       string   `dynamodbav:"author"`
 	PubDate      int64    `dynamodbav:"pub_date"`
 	Tags         []string `dynamodbav:"tags"`
+}
+
+type itemFilterModel struct {
+	IncludeKeywords []string `dynamodbav:"include_keywords"`
+	ExcludeKeywords []string `dynamodbav:"exclude_keywords"`
 }
 
 func (r *rssModel) NewItemModel(item Item) itemModel {
@@ -272,6 +278,7 @@ func buildRss(manager rssManager) Rss {
 		Description:   manager.rss.Description,
 		Language:      manager.rss.Language,
 		LastBuildDate: time.Unix(manager.rss.LastBuildDate, 0),
+		ItemFilter:    ItemFilter(manager.rss.ItemFilter),
 		Items:         itemsMap,
 		CreatedBy:     manager.rss.CreatedBy,
 		CreatedAt:     time.Unix(manager.rss.CreatedAt, 0).UTC(),
@@ -293,6 +300,7 @@ func buildRssManager(rss Rss) rssManager {
 		Description:   rss.Description,
 		Language:      rss.Language,
 		LastBuildDate: rss.LastBuildDate.Unix(),
+		ItemFilter:    itemFilterModel(rss.ItemFilter),
 		CreatedBy:     rss.CreatedBy,
 		CreatedAt:     rss.CreatedAt.Unix(),
 		UpdatedBy:     rss.UpdatedBy,

@@ -91,6 +91,9 @@ func TestRssRepository_Save(t *testing.T) {
 		assert.Contains(t, actual_rss, "description")
 		assert.Contains(t, actual_rss, "language")
 		assert.Contains(t, actual_rss, "last_build_date")
+		assert.Contains(t, actual_rss, "item_filter")
+		assert.Contains(t, actual_rss["item_filter"], "include_keywords")
+		assert.Contains(t, actual_rss["item_filter"], "exclude_keywords")
 		assert.Contains(t, actual_rss, "create_by")
 		assert.Contains(t, actual_rss, "create_at")
 		assert.Contains(t, actual_rss, "update_by")
@@ -103,6 +106,10 @@ func TestRssRepository_Save(t *testing.T) {
 		assert.Equal(t, "Test Description", actual_rss["description"])
 		assert.Equal(t, "en", actual_rss["language"])
 		assert_helper.EqualUnixTime(t, time.Date(2024, time.June, 1, 13, 30, 0, 0, time.UTC), actual_rss["last_build_date"])
+
+		itemFilter := actual_rss["item_filter"].(map[string]interface{})
+		assert.Equal(t, "include_keyword", itemFilter["include_keywords"].([]interface{})[0])
+		assert.Equal(t, "exclude_keyword", itemFilter["exclude_keywords"].([]interface{})[0])
 		assert_helper.EqualUserMeta(t, metadata.UserMeta{ID: "test-id", Name: "test-user"}, actual_rss["create_by"])
 		assert.NotEmpty(t, actual_rss["create_at"])
 		assert_helper.EqualUserMeta(t, metadata.UserMeta{ID: "test-id", Name: "test-user"}, actual_rss["update_by"])
@@ -114,7 +121,7 @@ func TestRssRepository_Save(t *testing.T) {
 		assert.NotEmpty(t, actual_item1)
 		assert.Equal(t, "Test Title 1", actual_item1["title"])
 		assert.Equal(t, "http://example.com/1", actual_item1["link"])
-		assert.Equal(t, "Test description 1", actual_item1["description"])
+		assert.Equal(t, "Test description 1-include_keyword", actual_item1["description"])
 		assert.Equal(t, "Test Author 1", actual_item1["author"])
 		assert_helper.EqualUnixTime(t, time.Date(2023, time.June, 1, 13, 30, 0, 0, time.UTC), actual_item1["pub_date"])
 
@@ -124,7 +131,7 @@ func TestRssRepository_Save(t *testing.T) {
 		assert.NotEmpty(t, actual_item2)
 		assert.Equal(t, "Test Title 2", actual_item2["title"])
 		assert.Equal(t, "http://example.com/2", actual_item2["link"])
-		assert.Equal(t, "Test description 2", actual_item2["description"])
+		assert.Equal(t, "Test description 2-include_keyword", actual_item2["description"])
 		assert.Equal(t, "Test Author 2", actual_item2["author"])
 		assert_helper.EqualUnixTime(t, time.Date(2023, time.June, 2, 13, 30, 0, 0, time.UTC), actual_item2["pub_date"])
 	})
@@ -145,7 +152,7 @@ func TestRssRepository_Save(t *testing.T) {
 			if err != nil {
 				return err
 			}
-			rssItem, err := rss.NewItem(rss.Guid{Value: "guid-11111"}, "Test Title 3", "http://example.com/3", "Test description 3", "Test Author 3", time.Date(2023, time.June, 3, 13, 30, 0, 0, time.UTC))
+			rssItem, err := rss.NewItem(rss.Guid{Value: "guid-11111"}, "Test Title 3", "http://example.com/3", "Test description 3-include_keyword", "Test Author 3", time.Date(2023, time.June, 3, 13, 30, 0, 0, time.UTC))
 			if err != nil {
 				return err
 			}
@@ -173,6 +180,10 @@ func TestRssRepository_Save(t *testing.T) {
 		assert.Equal(t, "Test Description", actual_rss["description"])
 		assert.Equal(t, "en", actual_rss["language"])
 		assert_helper.EqualUnixTime(t, time.Date(2024, time.August, 17, 11, 11, 11, 11, time.UTC), actual_rss["last_build_date"])
+
+		itemFilter := actual_rss["item_filter"].(map[string]interface{})
+		assert.Equal(t, "include_keyword", itemFilter["include_keywords"].([]interface{})[0])
+		assert.Equal(t, "exclude_keyword", itemFilter["exclude_keywords"].([]interface{})[0])
 		assert_helper.EqualUserMeta(t, metadata.UserMeta{ID: "test-id", Name: "test-user"}, actual_rss["create_by"])
 		assert.NotEmpty(t, actual_rss["create_at"])
 		assert_helper.EqualUserMeta(t, metadata.UserMeta{ID: "update-id", Name: "update-user"}, actual_rss["update_by"])
@@ -184,7 +195,7 @@ func TestRssRepository_Save(t *testing.T) {
 		assert.NotEmpty(t, actual_item1)
 		assert.Equal(t, "Test Title 1", actual_item1["title"])
 		assert.Equal(t, "http://example.com/1", actual_item1["link"])
-		assert.Equal(t, "Test description 1", actual_item1["description"])
+		assert.Equal(t, "Test description 1-include_keyword", actual_item1["description"])
 		assert.Equal(t, "Test Author 1", actual_item1["author"])
 		assert_helper.EqualUnixTime(t, time.Date(2023, time.June, 1, 13, 30, 0, 0, time.UTC), actual_item1["pub_date"])
 
@@ -194,7 +205,7 @@ func TestRssRepository_Save(t *testing.T) {
 		assert.NotEmpty(t, actual_item2)
 		assert.Equal(t, "Test Title 2", actual_item2["title"])
 		assert.Equal(t, "http://example.com/2", actual_item2["link"])
-		assert.Equal(t, "Test description 2", actual_item2["description"])
+		assert.Equal(t, "Test description 2-include_keyword", actual_item2["description"])
 		assert.Equal(t, "Test Author 2", actual_item2["author"])
 		assert_helper.EqualUnixTime(t, time.Date(2023, time.June, 2, 13, 30, 0, 0, time.UTC), actual_item2["pub_date"])
 
@@ -204,7 +215,7 @@ func TestRssRepository_Save(t *testing.T) {
 		assert.NotEmpty(t, actual_item3)
 		assert.Equal(t, "Test Title 3", actual_item3["title"])
 		assert.Equal(t, "http://example.com/3", actual_item3["link"])
-		assert.Equal(t, "Test description 3", actual_item3["description"])
+		assert.Equal(t, "Test description 3-include_keyword", actual_item3["description"])
 		assert.Equal(t, "Test Author 3", actual_item3["author"])
 		assert_helper.EqualUnixTime(t, time.Date(2023, time.June, 3, 13, 30, 0, 0, time.UTC), actual_item3["pub_date"])
 	})
@@ -244,6 +255,10 @@ func TestRssRepository_FindBySource(t *testing.T) {
 		assert.Equal(t, "Test Description", actual_rss.Description)
 		assert.Equal(t, "en", actual_rss.Language)
 		assert.Equal(t, time.Date(2024, time.June, 1, 13, 30, 0, 0, time.UTC), actual_rss.LastBuildDate.UTC())
+		assert.Equal(t, rss.ItemFilter{
+			IncludeKeywords: []string{"Test"},
+			ExcludeKeywords: []string{"unit"},
+		}, actual_rss.ItemFilter)
 		assert.Equal(t, metadata.CreateBy{ID: "test-id", Name: "test-user"}, actual_rss.CreatedBy)
 		assert.NotEmpty(t, actual_rss.CreatedAt)
 		assert.Equal(t, metadata.UpdateBy{ID: "test-id", Name: "test-user"}, actual_rss.UpdatedBy)
@@ -303,6 +318,10 @@ func TestRssRepository_FindAll(t *testing.T) {
 		assert.Equal(t, "Test Description", actual_rss.Description)
 		assert.Equal(t, "en", actual_rss.Language)
 		assert.Equal(t, time.Date(2024, time.June, 1, 13, 30, 0, 0, time.UTC), actual_rss.LastBuildDate.UTC())
+		assert.Equal(t, rss.ItemFilter{
+			IncludeKeywords: []string{"Test"},
+			ExcludeKeywords: []string{"unit"},
+		}, actual_rss.ItemFilter)
 		assert.Equal(t, metadata.CreateBy{ID: "test-id", Name: "test-user"}, actual_rss.CreatedBy)
 		assert.NotEmpty(t, actual_rss.CreatedAt)
 		assert.Equal(t, metadata.UpdateBy{ID: "test-id", Name: "test-user"}, actual_rss.UpdatedBy)
@@ -322,6 +341,7 @@ func TestRssRepository_FindAll(t *testing.T) {
 				return err
 			}
 
+			testRSS1.SetItemFilter([]string{"Test"}, []string{"unit"})
 			items := []struct {
 				guid, title, link, description, author string
 				pubDate                                time.Time
@@ -353,6 +373,7 @@ func TestRssRepository_FindAll(t *testing.T) {
 				return err
 			}
 
+			testRSS2.SetItemFilter([]string{"Test"}, []string{"unit"})
 			items := []struct {
 				guid, title, link, description, author string
 				pubDate                                time.Time
@@ -391,6 +412,7 @@ func TestRssRepository_FindAll(t *testing.T) {
 				Description:   "Test Description 1",
 				Language:      "ja",
 				LastBuildDate: time.Date(2024, time.June, 1, 13, 30, 0, 0, time.UTC),
+				ItemFilter:    rss.ItemFilter{IncludeKeywords: []string{"Test"}, ExcludeKeywords: []string{"unit"}},
 				CreatedBy:     metadata.CreateBy{ID: "test-id-1", Name: "test-user-1"},
 				UpdatedBy:     metadata.UpdateBy{ID: "test-id-1", Name: "test-user-1"},
 			},
@@ -401,6 +423,7 @@ func TestRssRepository_FindAll(t *testing.T) {
 				Description:   "Test Description 2",
 				Language:      "en",
 				LastBuildDate: time.Date(2024, time.June, 2, 13, 30, 0, 0, time.UTC),
+				ItemFilter:    rss.ItemFilter{IncludeKeywords: []string{"Test"}, ExcludeKeywords: []string{"unit"}},
 				CreatedBy:     metadata.CreateBy{ID: "test-id-2", Name: "test-user-2"},
 				UpdatedBy:     metadata.UpdateBy{ID: "test-id-2", Name: "test-user-2"},
 			},
@@ -414,6 +437,7 @@ func TestRssRepository_FindAll(t *testing.T) {
 			assert.Equal(t, expectedRss.Description, actualRss.Description)
 			assert.Equal(t, expectedRss.Language, actualRss.Language)
 			assert.Equal(t, expectedRss.LastBuildDate.UTC(), actualRss.LastBuildDate.UTC())
+			assert.Equal(t, expectedRss.ItemFilter, actualRss.ItemFilter)
 			assert.Equal(t, expectedRss.CreatedBy, actualRss.CreatedBy)
 			assert.NotEmpty(t, actualRss.CreatedAt)
 			assert.Equal(t, expectedRss.UpdatedBy, actualRss.UpdatedBy)
@@ -556,12 +580,14 @@ func getTestRss(t *testing.T) rss.Rss {
 			return err
 		}
 
+		test_rss.SetItemFilter([]string{"include_keyword"}, []string{"exclude_keyword"})
+
 		items := []struct {
 			guid, title, link, description, author string
 			pubDate                                time.Time
 		}{
-			{"guid-12345", "Test Title 1", "http://example.com/1", "Test description 1", "Test Author 1", time.Date(2023, time.June, 1, 13, 30, 0, 0, time.UTC)},
-			{"guid-67890", "Test Title 2", "http://example.com/2", "Test description 2", "Test Author 2", time.Date(2023, time.June, 2, 13, 30, 0, 0, time.UTC)},
+			{"guid-12345", "Test Title 1", "http://example.com/1", "Test description 1-include_keyword", "Test Author 1", time.Date(2023, time.June, 1, 13, 30, 0, 0, time.UTC)},
+			{"guid-67890", "Test Title 2", "http://example.com/2", "Test description 2-include_keyword", "Test Author 2", time.Date(2023, time.June, 2, 13, 30, 0, 0, time.UTC)},
 		}
 
 		for _, item := range items {
@@ -590,6 +616,8 @@ func setupExpectedRss(t *testing.T, ctx context.Context, rssSaver rssSaver) (set
 		if err != nil {
 			return err
 		}
+
+		test_rss.SetItemFilter([]string{"Test"}, []string{"unit"})
 
 		items := []struct {
 			guid, title, link, description, author string
