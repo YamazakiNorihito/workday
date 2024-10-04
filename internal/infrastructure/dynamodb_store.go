@@ -3,6 +3,7 @@ package infrastructure
 import (
 	"context"
 
+	"github.com/YamazakiNorihito/workday/pkg/utils"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
@@ -105,5 +106,63 @@ func (r *DynamoDBStore) PutItem(ctx context.Context, item interface{}) error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func (r *DynamoDBStore) DeleteItem(ctx context.Context, partitionKey string, sortKey string) (*dynamodb.DeleteItemOutput, error) {
+	input := &dynamodb.DeleteItemInput{
+		TableName: aws.String(r.TableName),
+		Key: map[string]types.AttributeValue{
+			"id":      &types.AttributeValueMemberS{Value: partitionKey},
+			"sortKey": &types.AttributeValueMemberS{Value: sortKey},
+		},
+	}
+	optFns := func(o *dynamodb.Options) {
+		o.RetryMaxAttempts = 1
+		o.RetryMode = aws.RetryModeStandard
+	}
+
+	result, err := r.client.DeleteItem(ctx, input, optFns)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func (r *DynamoDBStore) BatchDeleteItems(ctx context.Context, deleteInputs []dynamodb.DeleteItemInput) error {
+	chunks := utils.ChunkSlice(deleteInputs, 25)
+
+	for _, chunk := range chunks {
+		writeRequests := make([]types.WriteRequest, len(chunk))
+		for j, input := range chunk {
+			writeRequests[j] = types.WriteRequest{
+				DeleteRequest: &types.DeleteRequest{
+					Key: input.Key,
+				},
+			}
+		}
+
+		input := &dynamodb.BatchWriteItemInput{
+			RequestItems: map[string][]types.WriteRequest{
+				r.TableName: writeRequests,
+			},
+		}
+
+		result, err := r.client.BatchWriteItem(ctx, input)
+		if err != nil {
+			return err
+		}
+
+		for len(result.UnprocessedItems) > 0 {
+			input.RequestItems = result.UnprocessedItems
+			result, err = r.client.BatchWriteItem(ctx, input)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
 	return nil
 }

@@ -24,3 +24,7 @@ func GetItem(ctx context.Context, repo IRssRepository, rss Rss, guid Guid) (Rss,
 	targetRss, err := repo.FindItemsByPk(ctx, rss, guid)
 	return targetRss, err
 }
+
+func Delete(ctx context.Context, repo IRssRepository, rss Rss) error {
+	return repo.Delete(ctx, rss)
+}

@@ -13,6 +13,7 @@ type SpyRssRepository struct {
 	FindItemsFunc     func(ctx context.Context, rss rss.Rss) (rss.Rss, error)
 	FindItemsByPkFunc func(ctx context.Context, rss rss.Rss, guid rss.Guid) (rss.Rss, error)
 	SaveFunc          func(ctx context.Context, rss rss.Rss, updateBy metadata.UserMeta) (rss.Rss, error)
+	DeleteFunc        func(ctx context.Context, rss rss.Rss) error
 }
 
 func (r *SpyRssRepository) FindBySource(ctx context.Context, source string) (rss.Rss, error) {
@@ -48,4 +49,11 @@ func (r *SpyRssRepository) Save(ctx context.Context, rss rss.Rss, updateBy metad
 		return r.SaveFunc(ctx, rss, updateBy)
 	}
 	panic("SaveFunc is not implemented")
+}
+
+func (r *SpyRssRepository) Delete(ctx context.Context, rss rss.Rss) error {
+	if r.DeleteFunc != nil {
+		return r.DeleteFunc(ctx, rss)
+	}
+	panic("DeleteFunc is not implemented")
 }
