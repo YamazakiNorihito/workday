@@ -24,6 +24,10 @@ type Write struct {
 	Data       []byte  `json:"data,omitempty"`
 }
 
+type Delete struct {
+	Source string `json:"source"`
+}
+
 func NewWriteMessage(entryRss rss.Rss) (writeMessage Write, err error) {
 	serializedRss, _ := json.Marshal(entryRss)
 	if len(serializedRss) > MaxMessageSize {
