@@ -81,7 +81,7 @@ Content-Type: application/json
   "feed_url": "https://connpass.com/explore/ja.atom",
   "source_language_code": "ja",
    "item_filter": {
-    "exclude_keywords" : [".*会.*", ".*もくもく.*", ".*道場.*"]
+    "exclude_keywords" : [".*勉強会.*", ".*もくもく.*", ".*道場.*", ".*恋愛.*"]
   }
 }
 
@@ -173,6 +173,6 @@ Content-Type: application/json
 {
   "source_language_code": "ja",
    "item_filter": {
-    "exclude_keywords" : [".*会.*", ".*もくもく.*", ".*道場.*", ".*セミナー.*", ".*(PHP|php).*"]
+    "exclude_keywords" : [".*勉強会.*", ".*もくもく.*", ".*道場.*", ".*恋愛.*", ".*(PHP|php).*"]
   }
 }

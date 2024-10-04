@@ -7,6 +7,7 @@ use (
 	./cmd/rss/lambda/api/feed_id
 	./cmd/rss/lambda/api/patch
 	./cmd/rss/lambda/event/clean
+	./cmd/rss/lambda/event/delete
 	./cmd/rss/lambda/event/notification
 	./cmd/rss/lambda/event/subscribe
 	./cmd/rss/lambda/event/translate

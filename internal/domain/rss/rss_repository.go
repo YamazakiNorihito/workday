@@ -268,6 +268,7 @@ func (r *DynamoDBRssRepository) Delete(ctx context.Context, rss Rss) error {
 
 	var deleteInputs []dynamodb.DeleteItemInput
 	for _, item := range itemModels {
+		//r.dynamoDBStore.DeleteItem(ctx, item.PartitionKey, item.SortKey)
 		deleteInputs = append(deleteInputs, dynamodb.DeleteItemInput{
 			TableName: aws.String(r.dynamoDBStore.TableName),
 			Key: map[string]types.AttributeValue{
@@ -275,6 +276,11 @@ func (r *DynamoDBRssRepository) Delete(ctx context.Context, rss Rss) error {
 				"sortKey": &types.AttributeValueMemberS{Value: item.SortKey},
 			},
 		})
+	}
+
+	err = r.dynamoDBStore.BatchDeleteItems(ctx, deleteInputs)
+	if err != nil {
+		return err
 	}
 
 	_, err = r.dynamoDBStore.DeleteItem(ctx, manager.rss.PartitionKey, manager.rss.SortKey)
