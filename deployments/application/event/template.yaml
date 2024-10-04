@@ -64,3 +64,12 @@ Resources:
         TriggerTopicRssArn: !ImportValue RssWriteTopicArn
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
+  LambdaRssDeleteStack:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.${AWS::Region}.amazonaws.com/application/event/rss-delete.yaml"
+      Parameters:
+        LambdaRoleArn: !ImportValue LambdaRoleArn
+        TriggerTopicRssArn: !ImportValue RssDeleteTopicArn
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain

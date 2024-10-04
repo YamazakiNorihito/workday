@@ -61,6 +61,7 @@ Resources:
                   - !ImportValue RssSubscribeTopicArn
                   - !ImportValue RssTranslateTopicArn
                   - !ImportValue RssCleanTopicArn
+                  - !ImportValue RssDeleteTopicArn
         - PolicyName: 'LambdaTranslatePolicy'
           PolicyDocument:
             Version: '2012-10-17'
