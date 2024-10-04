@@ -17,6 +17,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func schemaProvider() ([]types.AttributeDefinition, []types.KeySchemaElement, []types.GlobalSecondaryIndex) {
@@ -547,6 +548,57 @@ func TestRssRepository_FindItem(t *testing.T) {
 		assert.False(t, exists)
 		assert.Empty(t, actual_item)
 		assert.Len(t, actual_rss.Items, 0)
+	})
+}
+
+func TestRssRepository_Delete(t *testing.T) {
+	t.Run("should return error if rss ID is invalid", func(t *testing.T) {
+		// Arrange
+		ctx, client := setUp()
+		rssRepository := rss.NewDynamoDBRssRepository(client)
+		invalidRss := rss.Rss{ID: uuid.Nil, Source: "Test_Source"}
+
+		// Act
+		err := rssRepository.Delete(ctx, invalidRss)
+
+		// Assert
+		assert.Error(t, err)
+	})
+
+	t.Run("should return error if Source is empty", func(t *testing.T) {
+		// Arrange
+		ctx, client := setUp()
+		rssRepository := rss.NewDynamoDBRssRepository(client)
+		invalidRss := rss.Rss{ID: uuid.New(), Source: ""}
+
+		// Act
+		err := rssRepository.Delete(ctx, invalidRss)
+
+		// Assert
+		assert.Error(t, err)
+	})
+
+	t.Run("should delete rss successfully", func(t *testing.T) {
+		// Arrange
+		ctx, client := setUp()
+		rssRepository := rss.NewDynamoDBRssRepository(client)
+		setupRss := setupExpectedRss(t, ctx, rssRepository) // 正常なRSSをセットアップ
+
+		// Act
+		foundRss, err := rssRepository.FindBySource(ctx, setupRss.Source)
+		require.NoError(t, err)
+
+		err = rssRepository.Delete(ctx, foundRss)
+
+		// Assert
+		assert.NoError(t, err)
+
+		// DynamoDBから削除されたことを確認
+		tableName := "Rss"
+		partitionKey := foundRss.Source
+		sortKey := "rss"
+		deletedItem, _ := helper.GetItem(ctx, client, tableName, partitionKey, sortKey)
+		assert.Empty(t, deletedItem)
 	})
 }
 
