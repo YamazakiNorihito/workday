@@ -27,3 +27,9 @@ Resources:
       TemplateURL: !Sub "https://${TemplateBucket}.s3.${AWS::Region}.amazonaws.com/sns/topic-rss-clean.yaml"
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
+  TopicDeleteStack:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.${AWS::Region}.amazonaws.com/sns/topic-rss-delete.yaml"
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain

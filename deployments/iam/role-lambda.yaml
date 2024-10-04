@@ -34,6 +34,8 @@ Resources:
                   - 'dynamodb:PutItem'
                   - 'dynamodb:Query'
                   - 'dynamodb:GetItem'
+                  - 'dynamodb:DeleteItem'
+                  - 'dynamodb:BatchWriteItem'
                 Resource: 
                   - !ImportValue RssTableArn
                   - !Sub
