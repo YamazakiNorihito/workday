@@ -7,8 +7,10 @@ import (
 
 	"github.com/YamazakiNorihito/workday/internal/domain/metadata"
 	"github.com/YamazakiNorihito/workday/internal/infrastructure"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/google/uuid"
 )
 
@@ -74,6 +76,7 @@ type IRssRepository interface {
 	FindItems(ctx context.Context, rss Rss) (Rss, error)
 	FindItemsByPk(ctx context.Context, rss Rss, guid Guid) (Rss, error)
 	Save(ctx context.Context, rss Rss, updateBy metadata.UserMeta) (Rss, error)
+	Delete(ctx context.Context, rss Rss) error
 }
 
 type DynamoDBRssRepository struct {
@@ -247,6 +250,39 @@ func (r *DynamoDBRssRepository) Save(ctx context.Context, rss Rss, updateBy meta
 	}
 
 	return rss, nil
+}
+
+func (r *DynamoDBRssRepository) Delete(ctx context.Context, rss Rss) error {
+	if rss.ID == uuid.Nil {
+		return errors.New("invalid rss ID")
+	}
+	if rss.Source == "" {
+		return errors.New("invalid the Source")
+	}
+
+	manager := buildRssManager(rss)
+	itemModels, err := r.getItemModels(ctx, manager.rss.PartitionKey, manager.rss.RssId)
+	if err != nil {
+		return err
+	}
+
+	var deleteInputs []dynamodb.DeleteItemInput
+	for _, item := range itemModels {
+		deleteInputs = append(deleteInputs, dynamodb.DeleteItemInput{
+			TableName: aws.String(r.dynamoDBStore.TableName),
+			Key: map[string]types.AttributeValue{
+				"id":      &types.AttributeValueMemberS{Value: item.PartitionKey},
+				"sortKey": &types.AttributeValueMemberS{Value: item.SortKey},
+			},
+		})
+	}
+
+	_, err = r.dynamoDBStore.DeleteItem(ctx, manager.rss.PartitionKey, manager.rss.SortKey)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func buildRss(manager rssManager) Rss {
