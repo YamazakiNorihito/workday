@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/YamazakiNorihito/workday/cmd/rss/lambda/api/shared/validation_error"
 	"github.com/YamazakiNorihito/workday/internal/domain/rss"
 	"github.com/YamazakiNorihito/workday/internal/infrastructure"
 	"github.com/YamazakiNorihito/workday/pkg/rss/message"
@@ -66,7 +67,7 @@ func (c *PatchCommand) Validation(ctx context.Context) error {
 			errMap[fieldName] = message
 		}
 		if len(errMap) > 0 {
-			return &ValidationError{errors: errMap}
+			return validation_error.New(errMap)
 		}
 	}
 	return nil

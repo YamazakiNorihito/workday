@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/YamazakiNorihito/workday/cmd/rss/lambda/api/patch/app_service"
+	"github.com/YamazakiNorihito/workday/cmd/rss/lambda/api/shared/validation_error"
 	"github.com/YamazakiNorihito/workday/internal/domain/rss"
 	"github.com/YamazakiNorihito/workday/pkg/rss/publisher"
 	"github.com/YamazakiNorihito/workday/tests/helper"
@@ -79,7 +80,7 @@ func TestPatchCommand_Validation(t *testing.T) {
 				err := tc.command.Validation(ctx)
 				// Assert
 				assert.Error(t, err)
-				if ve, ok := err.(*app_service.ValidationError); ok {
+				if ve, ok := err.(*validation_error.ValidationError); ok {
 					assert.Greater(t, len(ve.Errors()), 0)
 				}
 			})

@@ -5,26 +5,11 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/YamazakiNorihito/workday/cmd/rss/lambda/api/shared/validation_error"
 	"github.com/YamazakiNorihito/workday/internal/infrastructure"
 	"github.com/YamazakiNorihito/workday/pkg/rss/publisher"
 	"github.com/go-playground/validator/v10"
 )
-
-type ValidationError struct {
-	errors map[string]string
-}
-
-func (ve *ValidationError) Error() string {
-	var errMessages []string
-	for field, message := range ve.errors {
-		errMessages = append(errMessages, fmt.Sprintf("%s: %s", field, message))
-	}
-	return fmt.Sprintf("Validation failed: %s", strings.Join(errMessages, ", "))
-}
-
-func (ve *ValidationError) Errors() map[string]string {
-	return ve.errors
-}
 
 func (c *DeleteCommand) Validation(ctx context.Context) error {
 	validate := validator.New()
@@ -54,7 +39,7 @@ func (c *DeleteCommand) Validation(ctx context.Context) error {
 			errMap[fieldName] = message
 		}
 		if len(errMap) > 0 {
-			return &ValidationError{errors: errMap}
+			return validation_error.New(errMap)
 		}
 	}
 	return nil

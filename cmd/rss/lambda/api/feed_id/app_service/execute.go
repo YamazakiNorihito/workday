@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/YamazakiNorihito/workday/cmd/rss/lambda/api/shared/validation_error"
 	"github.com/YamazakiNorihito/workday/internal/domain/metadata"
 	"github.com/YamazakiNorihito/workday/internal/domain/rss"
 	"github.com/YamazakiNorihito/workday/internal/infrastructure"
@@ -57,7 +58,7 @@ func (c *GetCommand) Validation(ctx context.Context) error {
 			errMap[fieldName] = message
 		}
 		if len(errMap) > 0 {
-			return &ValidationError{errors: errMap}
+			return validation_error.New(errMap)
 		}
 	}
 	return nil
