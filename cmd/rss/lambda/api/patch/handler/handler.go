@@ -9,6 +9,7 @@ import (
 
 	"github.com/YamazakiNorihito/workday/cmd/rss/lambda/api/patch/app_service"
 	apiGatewayResponse "github.com/YamazakiNorihito/workday/cmd/rss/lambda/api/shared/api_gateway/response"
+	"github.com/YamazakiNorihito/workday/cmd/rss/lambda/api/shared/validation_error"
 	"github.com/YamazakiNorihito/workday/cmd/rss/lambda/event/shared"
 	awsConfig "github.com/YamazakiNorihito/workday/cmd/rss/lambda/event/shared/aws_config"
 	"github.com/YamazakiNorihito/workday/internal/domain/rss"
@@ -70,7 +71,7 @@ func processRecord(ctx context.Context, logger infrastructure.Logger, executer e
 
 	if err != nil {
 		logger.Error("Failed", "error", err)
-		if _, ok := err.(*app_service.ValidationError); ok {
+		if _, ok := err.(*validation_error.ValidationError); ok {
 			return apiGatewayResponse.ErrorResponse(http.StatusBadRequest, err.Error())
 		} else {
 			return apiGatewayResponse.ErrorResponse(http.StatusInternalServerError, err.Error())

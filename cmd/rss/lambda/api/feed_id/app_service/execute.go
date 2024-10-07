@@ -2,66 +2,15 @@ package app_service
 
 import (
 	"context"
-	"fmt"
-	"strings"
 	"time"
 
+	"github.com/YamazakiNorihito/workday/cmd/rss/lambda/api/shared/validation_error"
+	"github.com/YamazakiNorihito/workday/cmd/rss/lambda/api/shared/validator"
 	"github.com/YamazakiNorihito/workday/internal/domain/metadata"
 	"github.com/YamazakiNorihito/workday/internal/domain/rss"
 	"github.com/YamazakiNorihito/workday/internal/infrastructure"
-	"github.com/go-playground/validator"
 	"github.com/google/uuid"
 )
-
-type ValidationError struct {
-	errors map[string]string
-}
-
-func (ve *ValidationError) Error() string {
-	var errMessages []string
-	for field, message := range ve.errors {
-		errMessages = append(errMessages, fmt.Sprintf("%s: %s", field, message))
-	}
-	return fmt.Sprintf("Validation failed: %s", strings.Join(errMessages, ", "))
-}
-
-func (ve *ValidationError) Errors() map[string]string {
-	return ve.errors
-}
-
-func (c *GetCommand) Validation(ctx context.Context) error {
-	validate := validator.New()
-	errMap := make(map[string]string)
-
-	if err := validate.StructCtx(ctx, c); err != nil {
-		for _, err := range err.(validator.ValidationErrors) {
-			fieldName := err.Field()
-			tag := err.Tag()
-			param := err.Param()
-
-			var values string
-			switch tag {
-			case "min", "max":
-				values = fmt.Sprintf("value must be %s %s", tag, param)
-			case "oneof":
-				values = fmt.Sprintf("value must be one of [%s]", strings.ReplaceAll(param, " ", ", "))
-			default:
-				if param == "" {
-					values = "invalid value"
-				} else {
-					values = param
-				}
-			}
-
-			message := fmt.Sprintf("%s is %s: %s", fieldName, tag, values)
-			errMap[fieldName] = message
-		}
-		if len(errMap) > 0 {
-			return &ValidationError{errors: errMap}
-		}
-	}
-	return nil
-}
 
 type GetCommand struct {
 	Source string `validate:"required"`
@@ -93,7 +42,7 @@ func Execute(ctx context.Context, logger infrastructure.Logger, rssRepository rs
 }
 
 func GetRssFeed(ctx context.Context, logger infrastructure.Logger, rssRepository rss.IRssRepository, command GetCommand) (RssResponse, error) {
-	err := command.Validation(ctx)
+	err := validator.Validate(ctx, command)
 
 	if err != nil {
 		return RssResponse{}, err
@@ -105,12 +54,10 @@ func GetRssFeed(ctx context.Context, logger infrastructure.Logger, rssRepository
 	}
 
 	if feed.ID == uuid.Nil {
-		validationErr := ValidationError{
-			errors: map[string]string{
-				"source": "not found source: " + command.Source,
-			},
-		}
-		return RssResponse{}, &validationErr
+		validationErr := validation_error.New(map[string]string{
+			"source": "not found source: " + command.Source,
+		})
+		return RssResponse{}, validationErr
 	}
 
 	response := RssResponse{
