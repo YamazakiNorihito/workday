@@ -22,4 +22,5 @@ FUNCTIONs=("RssNotificationFunction:event/notification"
         "RssCreateFunction:api/create"
         "RssFeedsFunction:api/feeds"
         "RssFeedIdFunction:api/feed_id"
-        "RssPatchFunction:api/patch")
+        "RssPatchFunction:api/patch"
+        "RssDeleteRequestHandlerFunction:api/delete")
