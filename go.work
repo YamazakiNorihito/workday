@@ -3,6 +3,7 @@ go 1.22.2
 use (
 	.
 	./cmd/rss/lambda/api/create
+	./cmd/rss/lambda/api/delete
 	./cmd/rss/lambda/api/feeds
 	./cmd/rss/lambda/api/feed_id
 	./cmd/rss/lambda/api/patch
