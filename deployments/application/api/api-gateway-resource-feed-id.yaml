@@ -53,6 +53,22 @@ Resources:
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
 
+  DeleteMethodStack:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.${AWS::Region}.amazonaws.com/application/api/api-gateway-resource-template-method.yaml"
+      Parameters:
+        RestApiId: !Ref RestApiId
+        ResourceId: !GetAtt ResourceStack.Outputs.ResourceArn
+        HttpMethod: "DELETE"
+        FunctionName: "RssDeleteRequestHandlerFunction"
+        LambdaRoleArn: !Ref LambdaRoleArn
+        CodeS3Bucket: !Ref TemplateBucket
+        CodeS3Key: "binaries/rss/lambda/api/delete/function.zip"
+        OutPutTopicRssArn: !ImportValue RssDeleteTopicArn
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
+
 Outputs:
   ResourceArn:
     Value: !GetAtt ResourceStack.Outputs.ResourceArn

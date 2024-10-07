@@ -176,3 +176,7 @@ Content-Type: application/json
     "exclude_keywords" : [".*勉強会.*", ".*もくもく.*", ".*道場.*", ".*恋愛.*", ".*(PHP|php).*"]
   }
 }
+
+### delete
+DELETE {{base_uri}}/api/v1/rss/connpass.com
+Content-Type: application/json
